@@ -12,6 +12,35 @@ if(!defined('DEBUG'))
 
 class Php2Core
 {
+    public static function PhysicalToRelativePath($path): string
+    {
+        $pi = pathinfo($_SERVER['SCRIPT_URI']);
+        $baseUrl = isset($pi['extension']) ? $pi['dirname'] : $_SERVER['SCRIPT_URI'];
+        
+        $new = str_replace(ROOT.'\\', '', $path);
+        if($new !== $path)
+        {
+            return $baseUrl.'/'.$new;
+        }
+        
+        var_dump($path);
+        return '';
+    }
+    
+    /**
+     * @return string
+     */
+    public static function Root(): string
+    {
+        //Get lowest backtrace
+        $dbbt = debug_backtrace();
+        $last = $dbbt[count($dbbt) - 1];
+        
+        //get Directory
+        $pi = pathinfo($last['file']);
+        return $pi['dirname'];
+    }
+    
     /**
      * @param string $directory
      * @return array
@@ -207,15 +236,33 @@ class Php2Core
         //Inject execution time & Version
         HTML -> Child('body', function(\Php2Core\NoHTML\Body $body)
         {
-            $dif = microtime(true) - TSTART;
-            $body -> Raw('Process time: '.number_format(round($dif * 1000, 4), 4, ',', '.').' ms');
+            $body -> Div(function(Php2Core\NoHTML\Div $div)
+            {
+                $dif = microtime(true) - TSTART;
+                
+                $div -> Attributes() -> Set('id', 'execution-time');
+                $div -> Raw('Process time: '.number_format(round($dif * 1000, 4), 4, ',', '.').' ms');
+            });
+            
             $body -> Raw(VERSION);
+        });
+        
+        //Inject Php2Core Styles
+        HTML -> Child('head', function(\Php2Core\NoHTML\Head $head)
+        {
+            $head -> Link(function(\Php2Core\NoHTML\Link $link)
+            {
+                $link -> Attributes() -> Set('rel', 'stylesheet');
+                $link -> Attributes() -> Set('href', Php2Core::PhysicalToRelativePath(__DIR__.'/Data/Php2Core.css'));
+            });
         });
         
         //output
         echo HTML;
     }
 }
+
+define('ROOT', Php2Core::Root());
 
 //define map file;
 $mapFile = __DIR__.'/class.map';
