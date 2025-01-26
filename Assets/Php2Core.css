@@ -1,7 +1,7 @@
 #execution-time, #version
 {
     color: gray;
-    position: absolute;
+    position: fixed;
     left: 0px;
     bottom: 0px;
     font-size: 8pt;
@@ -17,13 +17,17 @@
 
 #version ul
 {
-    list-style: none;
-    display: none;
-    width: 300px;
-    text-align: right;
+    padding-inline-start: 20px;
 }
 
-#version:hover ul
+#version ul:first-child
+{
+    list-style: none;
+    display: none;
+    text-align: left;
+}
+
+#version:hover ul:first-child
 {
     display: block;
     position: absolute;
