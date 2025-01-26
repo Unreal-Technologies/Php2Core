@@ -5,11 +5,6 @@ require_once('Version.class.php');
 
 define('VERSION', new Php2Core\Version('Php2Core', 1,0,0,0, 'https://github.com/Unreal-Technologies/Php2Core'));
 
-if(!defined('DEBUG'))
-{
-    define('DEBUG', false);
-}
-
 class Php2Core
 {
     /**
@@ -323,6 +318,15 @@ class Php2Core
 
 define('ROOT', Php2Core::Root());
 
+$configFile = ROOT.'/Assets/Config.ini';
+if(!file_exists($configFile))
+{
+    file_put_contents($configFile, file_get_contents(__DIR__.'/Assets/Config.default.ini'));
+}
+
+define('CONFIGURATION', parse_ini_file($configFile, true));
+define('DEBUG', (int)CONFIGURATION['Configuration']['Debug'] === 1);
+
 //define map file;
 $mapFile = __DIR__.'/class.map';
 
@@ -360,4 +364,3 @@ if(!DEBUG) //Load modules when not in debug mode
 set_error_handler('Php2Core::ErrorHandler');
 set_exception_handler('Php2Core::ExceptionHandler');
 register_shutdown_function('Php2Core::Shutdown');
-
