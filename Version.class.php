@@ -116,6 +116,8 @@ class Version
     public function Render(NoHTML\Raw $container): void
     {
         $raw = $this -> _name.' ( '.$this -> _build.'.'.$this -> _major.'.'.$this -> _minor.'.'.$this -> _revision.' )';
+        
+        //Create Url link where needed
         if($this -> _url === null)
         {
             $container -> Raw($raw);
@@ -129,6 +131,8 @@ class Version
                 $a -> Attributes() -> Set('target', '_blank');
             });
         }
+        
+        //Go Through Children
         if(count($this -> _children) !== 0)
         {
             $container -> Ul(function(NoHTML\Ul $ul)

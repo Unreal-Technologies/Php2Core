@@ -12,12 +12,16 @@ if(!defined('DEBUG'))
 
 class Php2Core
 {
-    public static function PhysicalToRelativePath($path): string
+    /**
+     * @param string $path
+     * @return string
+     */
+    public static function PhysicalToRelativePath(string $path): string
     {
         $pi = pathinfo($_SERVER['SCRIPT_URI']);
         $baseUrl = isset($pi['extension']) ? $pi['dirname'] : $_SERVER['SCRIPT_URI'];
         
-        $new = str_replace(ROOT.'\\', '', $path);
+        $new = str_replace([ROOT.'\\', '\\', '//', ':/'], ['', '/', '/', '://'], $path);
         if($new !== $path)
         {
             return $baseUrl.'/'.$new;
@@ -254,6 +258,11 @@ class Php2Core
         //Inject Php2Core Styles
         HTML -> Child('head', function(\Php2Core\NoHTML\Head $head)
         {
+            //Write core head values as top most
+            
+            $children = $head -> Children();
+            $head -> Clear();
+            
             $head -> Link(function(\Php2Core\NoHTML\Link $link)
             {
                 $link -> Attributes() -> Set('rel', 'stylesheet');
@@ -262,8 +271,19 @@ class Php2Core
             $head -> Link(function(\Php2Core\NoHTML\Link $link)
             {
                 $link -> Attributes() -> Set('rel', 'stylesheet');
+                $link -> Attributes() -> Set('href', Php2Core::PhysicalToRelativePath(__DIR__.'/Assets/Materialize.css'));
+            });
+            $head -> Link(function(\Php2Core\NoHTML\Link $link)
+            {
+                $link -> Attributes() -> Set('rel', 'stylesheet');
                 $link -> Attributes() -> Set('href', Php2Core::PhysicalToRelativePath(__DIR__.'/Assets/Php2Core.css'));
             });
+            $head -> ScriptExtern('text/javascript', Php2Core::PhysicalToRelativePath(__DIR__.'/Assets/Materialize.js'));
+            
+            foreach($children as $child)
+            {
+                $head -> Append($child);
+            }
         });
         
         //output
