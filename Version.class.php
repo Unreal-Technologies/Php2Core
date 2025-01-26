@@ -82,8 +82,23 @@ class Version
      */
     public function Add(Version $version): void
     {
-        $version -> _position = $this -> _position + 1;
+        $this -> UpdatePositionRecursive($version, $this -> _position + 1);
         $this -> _children[] = $version;
+    }
+    
+    /**
+     * @param Version $version
+     * @param int $value
+     * @return void
+     */
+    private function UpdatePositionRecursive(Version $version, int $value): void
+    {
+        $version -> _position = $value;
+        
+        foreach($version -> _children as $child)
+        {
+            $this -> UpdatePositionRecursive($child, $value + 1);
+        }
     }
     
     /**

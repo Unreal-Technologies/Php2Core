@@ -1,8 +1,14 @@
 <?php
+define('TSTART', microtime(true));
+
 require_once('Version.class.php');
 
 define('VERSION', new Php2Core\Version('Php2Core', 1,0,0,0));
-define('DEBUG', true);
+
+if(!defined('DEBUG'))
+{
+    define('DEBUG', false);
+}
 
 class Php2Core
 {
@@ -170,10 +176,41 @@ class Php2Core
      */
     public static function ExceptionHandler(\Throwable $ex): void
     {
-        echo '<h2>Php2Core::ExceptionHandler</h2>';
-        echo '<xmp>';
-        print_r($ex);
-        echo '</xmp>';
+        $hasBody = false;
+        
+        HTML -> Child('body', function(\Php2Core\NoHTML\Body $body) use(&$hasBody, $ex)
+        {
+            $body -> Clear();
+            $body -> H2('Php2Core::ExceptionHandler');
+            $body -> Xmp(print_r($ex, true));
+
+            $hasBody = true; 
+        });
+        
+        if(!$hasBody)
+        {
+            echo '<h2>Php2Core::ExceptionHandler</h2>';
+            echo '<xmp>';
+            print_r($ex);
+            echo '</xmp>';
+        }
+    }
+    
+    /**
+     * @return void
+     */
+    public static function Shutdown(): void
+    {
+        //Inject execution time & Version
+        HTML -> Child('body', function(\Php2Core\NoHTML\Body $body)
+        {
+            $dif = microtime(true) - TSTART;
+            $body -> Raw('Process time: '.number_format(round($dif * 1000, 4), 4, ',', '.').' ms');
+            $body -> Raw(VERSION);
+        });
+        
+        //output
+        echo HTML;
     }
 }
 
@@ -200,12 +237,9 @@ spl_autoload_register(function(string $className)
         require_once(MAP[$className]);
         return;
     }
-    else
-    {
-        var_dump($className);
-    }
 });
 
 //register handlers
 set_error_handler('Php2Core::ErrorHandler');
 set_exception_handler('Php2Core::ExceptionHandler');
+register_shutdown_function('Php2Core::Shutdown');
