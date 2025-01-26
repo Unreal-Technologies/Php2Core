@@ -42,7 +42,7 @@ class Php2Core
     public static function Map(string $directory): array
     {
         $skipped = [];
-        $map = [];
+        $map = [[], []];
         foreach(Php2Core::ScanDir($directory) as $entry) //Loop Through all Entries
         {
             if($entry['Path'] === __FILE__ || preg_match('/\.git$/i', $entry['Path'])) // Check if Path is not a git folder and not a self reference
@@ -60,11 +60,14 @@ class Php2Core
                 }
                 
                 //Import local map
-                $loaded = (array) json_decode(file_get_contents($mapFile));
-                $map = array_merge($map, $loaded);
+                $loaded = json_decode(file_get_contents($mapFile), true);
+                $map[0] = array_merge($map[0], (array)$loaded[0]);
+                $map[1] = array_merge($map[1], (array)$loaded[1]);
                 
                 //Initialize
                 require_once($entry['Path'].'/Init.php');
+                
+                $map[1][] = realpath($entry['Path'].'/Init.php');
             }
             else if($entry['Type'] === 'Dir') //Loop through content recursive
             {
@@ -94,7 +97,7 @@ class Php2Core
 
                     foreach($difMerged as $class)
                     {
-                        $map[$class] = $entry['Path'];
+                        $map[0][$class] = $entry['Path'];
                     }
                 }
                 catch(\Throwable $ex)
@@ -130,7 +133,7 @@ class Php2Core
 
                     foreach($difMerged as $class)
                     {
-                        $map[$class] = $entry['Path'];
+                        $map[0][$class] = $entry['Path'];
                     }
                     $remove[] = $idx;
                 } 
@@ -224,7 +227,7 @@ if(!file_exists($mapFile) || DEBUG) //create map file if not exists
 }
 else //Load map file
 {
-    $map = (array)json_decode(file_get_contents($mapFile));
+    $map = json_decode(file_get_contents($mapFile), true);
 }
 
 define('MAP', $map); //Register map
@@ -232,14 +235,23 @@ define('MAP', $map); //Register map
 //Autoload missing components from map data;
 spl_autoload_register(function(string $className)
 {
-    if(isset(MAP[$className]) && file_exists(MAP[$className]))
+    if(isset(MAP[0][$className]) && file_exists(MAP[0][$className]))
     {
-        require_once(MAP[$className]);
+        require_once(MAP[0][$className]);
         return;
     }
 });
+
+if(!DEBUG) //Load modules when not in debug mode
+{
+    foreach($map[1] as $module)
+    {
+        require_once($module);
+    }
+}
 
 //register handlers
 set_error_handler('Php2Core::ErrorHandler');
 set_exception_handler('Php2Core::ExceptionHandler');
 register_shutdown_function('Php2Core::Shutdown');
+
