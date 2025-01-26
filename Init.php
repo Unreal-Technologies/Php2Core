@@ -12,15 +12,18 @@ if(!defined('DEBUG'))
 
 class Php2Core
 {
-    public static function PhysicalToRelativePath($path): string
+    /**
+     * @param string $path
+     * @return string
+     */
+    public static function PhysicalToRelativePath(string $path): string
     {
-        $pi = pathinfo($_SERVER['SCRIPT_URI']);
-        $baseUrl = isset($pi['extension']) ? $pi['dirname'] : $_SERVER['SCRIPT_URI'];
-        
-        $new = str_replace(ROOT.'\\', '', $path);
+        $basePath = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].pathinfo($_SERVER['SCRIPT_NAME'])['dirname'];
+
+        $new = str_replace([ROOT.'\\', '\\', '//', ':/'], ['', '/', '/', '://'], $path);
         if($new !== $path)
         {
-            return $baseUrl.'/'.$new;
+            return $basePath.'/'.$new;
         }
         
         var_dump($path);
@@ -32,12 +35,8 @@ class Php2Core
      */
     public static function Root(): string
     {
-        //Get lowest backtrace
-        $dbbt = debug_backtrace();
-        $last = $dbbt[count($dbbt) - 1];
-        
         //get Directory
-        $pi = pathinfo($last['file']);
+        $pi = pathinfo(__DIR__);
         return $pi['dirname'];
     }
     
@@ -68,44 +67,59 @@ class Php2Core
      * @param string $directory
      * @return array
      */
-    public static function Map(string $directory): array
+    public static function Map(string $directory, array $map = ['Classes' => [], 'Init' => [], 'Skipped' => []], bool $topMost = true): array
     {
-        $skipped = [];
-        $map = [[], []];
+        $skipped = $map['Skipped'];
+        
         foreach(Php2Core::ScanDir($directory) as $entry) //Loop Through all Entries
         {
-            if($entry['Path'] === __FILE__ || preg_match('/\.git$/i', $entry['Path'])) // Check if Path is not a git folder and not a self reference
+            if(
+                $entry['Path'] === __FILE__ || 
+                (
+                    $entry['Type'] === 'File' && 
+                    (
+                        !preg_match('/\.php$/i', $entry['Path']) || 
+                        preg_match('/init\.php$/i', $entry['Path'])
+                    )
+                ) ||
+                preg_match('/.git$/i', $entry['Path'])
+            ) // Check if Path is not a git folder and not a self reference
             {
                 continue;
             }
-
+            
             if($entry['Type'] === 'Dir' && file_exists($entry['Path'].'/Init.php')) //Check if a init file exists, if so, execute it
             {
                 //Create local map file
                 $mapFile = $entry['Path'].'/class.map';
                 if(!file_exists($mapFile) || DEBUG)
                 {
-                    file_put_contents($mapFile, json_encode(Php2Core::Map($entry['Path'])));
+                    file_put_contents($mapFile, json_encode(Php2Core::Map($entry['Path'], $map, true)));
                 }
                 
                 //Import local map
                 $loaded = json_decode(file_get_contents($mapFile), true);
-                $map[0] = array_merge($map[0], (array)$loaded[0]);
-                $map[1] = array_merge($map[1], (array)$loaded[1]);
+                $map['Classes'] = array_merge($map['Classes'], $loaded['Classes']);
+                $map['Init'] = array_merge($map['Init'], $loaded['Init']);
+                $skipped = array_merge($skipped, $loaded['Skipped']);
                 
                 //Initialize
                 require_once($entry['Path'].'/Init.php');
                 
-                $map[1][] = realpath($entry['Path'].'/Init.php');
+                $map['Init'][] = realpath($entry['Path'].'/Init.php');
+                continue;
             }
-            else if($entry['Type'] === 'Dir') //Loop through content recursive
+            
+            if($entry['Type'] === 'Dir')
             {
-                
-                $loaded = Php2Core::Map($entry['Path']);
-                $map[0] = array_merge($map[0], (array)$loaded[0]);
-                $map[1] = array_merge($map[1], (array)$loaded[1]);
+                $loaded = Php2Core::Map($entry['Path'], $map, false);
+                $map['Classes'] = array_merge($map['Classes'], $loaded['Classes']);
+                $map['Init'] = array_merge($map['Init'], $loaded['Init']);
+                $skipped = array_merge($skipped, $loaded['Skipped']);
+                continue;
             }
-            else if($entry['Type'] === 'File' && preg_match('/\.php/', $entry['Path']) && !preg_match('/init\.php$/i', $entry['Path'])) //Each file check declared components (Classes, Interfaces & Traits)
+            
+            if($entry['Type'] === 'File' && preg_match('/\.php$/i', $entry['Path']))
             {
                 try
                 {
@@ -127,61 +141,75 @@ class Php2Core
 
                     foreach($difMerged as $class)
                     {
-                        $map[0][$class] = $entry['Path'];
+                        $map['Classes'][$class] = $entry['Path'];
                     }
                 }
                 catch(\Throwable $ex)
                 {
                     $skipped[] = $entry;
                 }
+                continue;
             }
+            
+            throw new \Exception('Undefined object: '.$entry['Path'].' ('.$entry['Type'].')');
         }
         
-        $sc = -1;
-        while($sc !== count($skipped))
+        if($topMost)
         {
-            $remove = [];
-            foreach($skipped as $idx => $entry)
+            $sk = -1;
+            $i = 0;
+            while($sk !== count($skipped))
             {
-                try
+                $sk = count($skipped);
+                
+                $i++;
+                $remove = [];
+                foreach($skipped as $idx => $entry)
                 {
-                    $baseClasses = get_declared_classes();
-                    $baseInterfaces = get_declared_interfaces();
-                    $baseTraits = get_declared_traits();
-
-                    include($entry['Path']);
-
-                    $postClasses = get_declared_classes();
-                    $postInterfaces = get_declared_interfaces();
-                    $postTraits = get_declared_traits();
-
-                    $difClasses = array_diff($postClasses, $baseClasses);
-                    $difInterfaces = array_diff($postInterfaces, $baseInterfaces);
-                    $difTraits = array_diff($postTraits, $baseTraits);
-
-                    $difMerged = array_merge($difClasses, $difInterfaces, $difTraits);
-
-                    foreach($difMerged as $class)
+                    try
                     {
-                        $map[0][$class] = $entry['Path'];
+                        $baseClasses = get_declared_classes();
+                        $baseInterfaces = get_declared_interfaces();
+                        $baseTraits = get_declared_traits();
+
+                        include($entry['Path']);
+
+                        $postClasses = get_declared_classes();
+                        $postInterfaces = get_declared_interfaces();
+                        $postTraits = get_declared_traits();
+
+                        $difClasses = array_diff($postClasses, $baseClasses);
+                        $difInterfaces = array_diff($postInterfaces, $baseInterfaces);
+                        $difTraits = array_diff($postTraits, $baseTraits);
+
+                        $difMerged = array_merge($difClasses, $difInterfaces, $difTraits);
+
+                        foreach($difMerged as $class)
+                        {
+                            $map['Classes'][$class] = $entry['Path'];
+                        }
+                        $remove[] = $idx;
+                    } 
+                    catch (\Throwable $ex) 
+                    { 
+                        $map['Skipped'][] = $entry;
                     }
-                    $remove[] = $idx;
-                } 
-                catch (\Throwable $ex) { }
+                }
+                
+                foreach($remove as $idx)
+                {
+                    unset($skipped[$idx]);
+                }
             }
-            
-            foreach($remove as $idx)
+
+            if(count($skipped) !== 0)
             {
-                unset($skipped[$idx]);
+                throw new \Exception('Could not get all class data');
             }
-            
-            $sc = count($skipped);
         }
         
-        if(count($skipped) !== 0)
-        {
-            throw new \Exception('Could not get all class data');
-        }
+        $map['Skipped'] = $skipped;
+        
         return $map;
     }
     
@@ -254,6 +282,17 @@ class Php2Core
         //Inject Php2Core Styles
         HTML -> Child('head', function(\Php2Core\NoHTML\Head $head)
         {
+            //Write core head values as top most
+            
+            $children = $head -> Children();
+            $head -> Clear();
+            
+            $head -> Link(function(\Php2Core\NoHTML\Link $link)
+            {
+                $link -> Attributes() -> Set('rel', 'icon');
+                $link -> Attributes() -> Set('type', 'image/x-icon');
+                $link -> Attributes() -> Set('href', Php2Core::PhysicalToRelativePath(__DIR__.'/Assets/Images/favicon.ico'));
+            });
             $head -> Link(function(\Php2Core\NoHTML\Link $link)
             {
                 $link -> Attributes() -> Set('rel', 'stylesheet');
@@ -262,8 +301,19 @@ class Php2Core
             $head -> Link(function(\Php2Core\NoHTML\Link $link)
             {
                 $link -> Attributes() -> Set('rel', 'stylesheet');
+                $link -> Attributes() -> Set('href', Php2Core::PhysicalToRelativePath(__DIR__.'/Assets/Materialize.css'));
+            });
+            $head -> Link(function(\Php2Core\NoHTML\Link $link)
+            {
+                $link -> Attributes() -> Set('rel', 'stylesheet');
                 $link -> Attributes() -> Set('href', Php2Core::PhysicalToRelativePath(__DIR__.'/Assets/Php2Core.css'));
             });
+            $head -> ScriptExtern('text/javascript', Php2Core::PhysicalToRelativePath(__DIR__.'/Assets/Materialize.js'));
+            
+            foreach($children as $child)
+            {
+                $head -> Append($child);
+            }
         });
         
         //output
@@ -291,16 +341,16 @@ define('MAP', $map); //Register map
 //Autoload missing components from map data;
 spl_autoload_register(function(string $className)
 {
-    if(isset(MAP[0][$className]) && file_exists(MAP[0][$className]))
+    if(isset(MAP['Classes'][$className]) && file_exists(MAP['Classes'][$className]))
     {
-        require_once(MAP[0][$className]);
+        require_once(MAP['Classes'][$className]);
         return;
     }
 });
 
 if(!DEBUG) //Load modules when not in debug mode
 {
-    foreach($map[1] as $module)
+    foreach($map['Init'] as $module)
     {
         require_once($module);
     }
