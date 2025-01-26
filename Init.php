@@ -35,6 +35,7 @@ class Php2Core
      */
     public static function Map(string $directory): array
     {
+        $skipped = [];
         $map = [];
         foreach(Php2Core::ScanDir($directory) as $entry) //Loop Through all Entries
         {
@@ -45,6 +46,18 @@ class Php2Core
 
             if($entry['Type'] === 'Dir' && file_exists($entry['Path'].'/Init.php')) //Check if a init file exists, if so, execute it
             {
+                //Create local map file
+                $mapFile = $entry['Path'].'/class.map';
+                if(!file_exists($mapFile) || DEBUG)
+                {
+                    file_put_contents($mapFile, json_encode(Php2Core::Map($entry['Path'])));
+                }
+                
+                //Import local map
+                $loaded = (array) json_decode(file_get_contents($mapFile));
+                $map = array_merge($map, $loaded);
+                
+                //Initialize
                 require_once($entry['Path'].'/Init.php');
             }
             else if($entry['Type'] === 'Dir') //Loop through content recursive
@@ -53,29 +66,82 @@ class Php2Core
                 print_r($entry);
                 echo '</xmp>';
             }
-            else if($entry['Type'] === 'File' && preg_match('/\.php/', $entry['Path'])) //Each file check declared components (Classes, Interfaces & Traits)
+            else if($entry['Type'] === 'File' && preg_match('/\.php/', $entry['Path']) && !preg_match('/init\.php$/i', $entry['Path'])) //Each file check declared components (Classes, Interfaces & Traits)
             {
-                $baseClasses = get_declared_classes();
-                $baseInterfaces = get_declared_interfaces();
-                $baseTraits = get_declared_traits();
-                
-                require_once($entry['Path']);
-                
-                $postClasses = get_declared_classes();
-                $postInterfaces = get_declared_interfaces();
-                $postTraits = get_declared_traits();
-                
-                $difClasses = array_diff($postClasses, $baseClasses);
-                $difInterfaces = array_diff($postInterfaces, $baseInterfaces);
-                $difTraits = array_diff($postTraits, $baseTraits);
-                
-                $difMerged = array_merge($difClasses, $difInterfaces, $difTraits);
-                
-                foreach($difMerged as $class)
+                try
                 {
-                    $map[$class] = $entry['Path'];
+                    $baseClasses = get_declared_classes();
+                    $baseInterfaces = get_declared_interfaces();
+                    $baseTraits = get_declared_traits();
+
+                    require_once($entry['Path']);
+
+                    $postClasses = get_declared_classes();
+                    $postInterfaces = get_declared_interfaces();
+                    $postTraits = get_declared_traits();
+
+                    $difClasses = array_diff($postClasses, $baseClasses);
+                    $difInterfaces = array_diff($postInterfaces, $baseInterfaces);
+                    $difTraits = array_diff($postTraits, $baseTraits);
+
+                    $difMerged = array_merge($difClasses, $difInterfaces, $difTraits);
+
+                    foreach($difMerged as $class)
+                    {
+                        $map[$class] = $entry['Path'];
+                    }
+                }
+                catch(\Throwable $ex)
+                {
+                    $skipped[] = $entry;
                 }
             }
+        }
+        
+        $sc = -1;
+        while($sc !== count($skipped))
+        {
+            $remove = [];
+            foreach($skipped as $idx => $entry)
+            {
+                try
+                {
+                    $baseClasses = get_declared_classes();
+                    $baseInterfaces = get_declared_interfaces();
+                    $baseTraits = get_declared_traits();
+
+                    include($entry['Path']);
+
+                    $postClasses = get_declared_classes();
+                    $postInterfaces = get_declared_interfaces();
+                    $postTraits = get_declared_traits();
+
+                    $difClasses = array_diff($postClasses, $baseClasses);
+                    $difInterfaces = array_diff($postInterfaces, $baseInterfaces);
+                    $difTraits = array_diff($postTraits, $baseTraits);
+
+                    $difMerged = array_merge($difClasses, $difInterfaces, $difTraits);
+
+                    foreach($difMerged as $class)
+                    {
+                        $map[$class] = $entry['Path'];
+                    }
+                    $remove[] = $idx;
+                } 
+                catch (\Throwable $ex) { }
+            }
+            
+            foreach($remove as $idx)
+            {
+                unset($skipped[$idx]);
+            }
+            
+            $sc = count($skipped);
+        }
+        
+        if(count($skipped) !== 0)
+        {
+            throw new \Exception('Could not get all class data');
         }
         return $map;
     }
@@ -133,6 +199,10 @@ spl_autoload_register(function(string $className)
     {
         require_once(MAP[$className]);
         return;
+    }
+    else
+    {
+        var_dump($className);
     }
 });
 

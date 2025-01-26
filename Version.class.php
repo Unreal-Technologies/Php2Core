@@ -47,12 +47,33 @@ class Version
      */
     public function __construct(string $name, int $build, int $major, int $minor, int $revision)
     {
+        $this -> Update($name, $build, $major, $minor, $revision);
+        $this -> Clear();
+    }
+    
+    /**
+     * @return void
+     */
+    public function Clear(): void
+    {
+        $this -> _children = [];
+    }
+    
+    /**
+     * @param string $name
+     * @param int $build
+     * @param int $major
+     * @param int $minor
+     * @param int $revision
+     * @return void
+     */
+    public function Update(string $name, int $build, int $major, int $minor, int $revision): void
+    {
         $this -> _name = $name;
         $this -> _build = $build;
         $this -> _major = $major;
         $this -> _minor = $minor;
         $this -> _revision = $revision;
-        $this -> _children = [];
     }
     
     /**
