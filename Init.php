@@ -3,7 +3,7 @@ define('TSTART', microtime(true));
 
 require_once('Version.class.php');
 
-define('VERSION', new Php2Core\Version('Php2Core', 1,0,0,0));
+define('VERSION', new Php2Core\Version('Php2Core', 1,0,0,0, 'https://github.com/Unreal-Technologies/Php2Core'));
 
 if(!defined('DEBUG'))
 {
@@ -100,9 +100,10 @@ class Php2Core
             }
             else if($entry['Type'] === 'Dir') //Loop through content recursive
             {
-                echo '<xmp>';
-                print_r($entry);
-                echo '</xmp>';
+                
+                $loaded = Php2Core::Map($entry['Path']);
+                $map[0] = array_merge($map[0], (array)$loaded[0]);
+                $map[1] = array_merge($map[1], (array)$loaded[1]);
             }
             else if($entry['Type'] === 'File' && preg_match('/\.php/', $entry['Path']) && !preg_match('/init\.php$/i', $entry['Path'])) //Each file check declared components (Classes, Interfaces & Traits)
             {
@@ -243,8 +244,11 @@ class Php2Core
                 $div -> Attributes() -> Set('id', 'execution-time');
                 $div -> Raw('Process time: '.number_format(round($dif * 1000, 4), 4, ',', '.').' ms');
             });
-            
-            $body -> Raw(VERSION);
+            $body -> Div(function(\Php2Core\NoHTML\Div $div)
+            {
+                $div -> Attributes() -> Set('id', 'version');
+                VERSION -> Render($div);
+            });
         });
         
         //Inject Php2Core Styles
@@ -253,7 +257,12 @@ class Php2Core
             $head -> Link(function(\Php2Core\NoHTML\Link $link)
             {
                 $link -> Attributes() -> Set('rel', 'stylesheet');
-                $link -> Attributes() -> Set('href', Php2Core::PhysicalToRelativePath(__DIR__.'/Data/Php2Core.css'));
+                $link -> Attributes() -> Set('href', Php2Core::PhysicalToRelativePath(__DIR__.'/Assets/FA-all.min.5.15.4.css'));
+            });
+            $head -> Link(function(\Php2Core\NoHTML\Link $link)
+            {
+                $link -> Attributes() -> Set('rel', 'stylesheet');
+                $link -> Attributes() -> Set('href', Php2Core::PhysicalToRelativePath(__DIR__.'/Assets/Php2Core.css'));
             });
         });
         

@@ -1,0 +1,38 @@
+#execution-time, #version
+{
+    color: gray;
+    position: absolute;
+    left: 0px;
+    bottom: 0px;
+    font-size: 8pt;
+    padding: 5px;
+}
+
+#version
+{
+    right: 0px;
+    left: unset;
+    padding: 5px;
+}
+
+#version ul
+{
+    list-style: none;
+    display: none;
+    width: 300px;
+    text-align: right;
+}
+
+#version:hover ul
+{
+    display: block;
+    position: absolute;
+    right: 0px;
+    bottom: 10px;
+    padding: 5px;
+}
+
+#version li i
+{
+    padding-right: 5px;
+}

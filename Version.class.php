@@ -39,15 +39,21 @@ class Version
     private $_revision = 0;
     
     /**
+     * @var string|null
+     */
+    private $_url = null;
+    
+    /**
      * @param string $name
      * @param int $build
      * @param int $major
      * @param int $minor
      * @param int $revision
+     * @param string|null $url
      */
-    public function __construct(string $name, int $build, int $major, int $minor, int $revision)
+    public function __construct(string $name, int $build, int $major, int $minor, int $revision, ?string $url = null)
     {
-        $this -> Update($name, $build, $major, $minor, $revision);
+        $this -> Update($name, $build, $major, $minor, $revision, $url);
         $this -> Clear();
     }
     
@@ -65,15 +71,17 @@ class Version
      * @param int $major
      * @param int $minor
      * @param int $revision
+     * @param string|null $url
      * @return void
      */
-    public function Update(string $name, int $build, int $major, int $minor, int $revision): void
+    public function Update(string $name, int $build, int $major, int $minor, int $revision, ?string $url = null): void
     {
         $this -> _name = $name;
         $this -> _build = $build;
         $this -> _major = $major;
         $this -> _minor = $minor;
         $this -> _revision = $revision;
+        $this -> _url = $url;
     }
     
     /**
@@ -98,6 +106,42 @@ class Version
         foreach($version -> _children as $child)
         {
             $this -> UpdatePositionRecursive($child, $value + 1);
+        }
+    }
+    
+    /**
+     * @param NoHTML\Raw $container
+     * @return void
+     */
+    public function Render(NoHTML\Raw $container): void
+    {
+        $raw = $this -> _name.' ( '.$this -> _build.'.'.$this -> _major.'.'.$this -> _minor.'.'.$this -> _revision.' )';
+        if($this -> _url === null)
+        {
+            $container -> Raw($raw);
+        }
+        else
+        {
+            $container -> A(function(NoHTML\A $a) use($raw)
+            {
+                $a -> Raw($raw);
+                $a -> Attributes() -> Set('href', $this -> _url);
+                $a -> Attributes() -> Set('target', '_blank');
+            });
+        }
+        if(count($this -> _children) !== 0)
+        {
+            $container -> Ul(function(NoHTML\Ul $ul)
+            {
+                foreach($this -> _children as $child)
+                {
+                    $ul -> Li(function(NoHTML\Li $li) use($child)
+                    {
+                        $li -> Raw('<i class="fad fa-chevron-double-right"></i>');
+                        $child -> Render($li);
+                    });
+                }
+            });
         }
     }
     
