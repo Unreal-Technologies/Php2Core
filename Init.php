@@ -1,11 +1,46 @@
 <?php
+define('TSTART', microtime(true));
+
 require_once('Version.class.php');
 
-define('VERSION', new Php2Core\Version('Php2Core', 1,0,0,0));
-define('DEBUG', true);
+define('VERSION', new Php2Core\Version('Php2Core', 1,0,0,0, 'https://github.com/Unreal-Technologies/Php2Core'));
+
+if(!defined('DEBUG'))
+{
+    define('DEBUG', false);
+}
 
 class Php2Core
 {
+    public static function PhysicalToRelativePath($path): string
+    {
+        $pi = pathinfo($_SERVER['SCRIPT_URI']);
+        $baseUrl = isset($pi['extension']) ? $pi['dirname'] : $_SERVER['SCRIPT_URI'];
+        
+        $new = str_replace(ROOT.'\\', '', $path);
+        if($new !== $path)
+        {
+            return $baseUrl.'/'.$new;
+        }
+        
+        var_dump($path);
+        return '';
+    }
+    
+    /**
+     * @return string
+     */
+    public static function Root(): string
+    {
+        //Get lowest backtrace
+        $dbbt = debug_backtrace();
+        $last = $dbbt[count($dbbt) - 1];
+        
+        //get Directory
+        $pi = pathinfo($last['file']);
+        return $pi['dirname'];
+    }
+    
     /**
      * @param string $directory
      * @return array
@@ -36,7 +71,7 @@ class Php2Core
     public static function Map(string $directory): array
     {
         $skipped = [];
-        $map = [];
+        $map = [[], []];
         foreach(Php2Core::ScanDir($directory) as $entry) //Loop Through all Entries
         {
             if($entry['Path'] === __FILE__ || preg_match('/\.git$/i', $entry['Path'])) // Check if Path is not a git folder and not a self reference
@@ -54,17 +89,21 @@ class Php2Core
                 }
                 
                 //Import local map
-                $loaded = (array) json_decode(file_get_contents($mapFile));
-                $map = array_merge($map, $loaded);
+                $loaded = json_decode(file_get_contents($mapFile), true);
+                $map[0] = array_merge($map[0], (array)$loaded[0]);
+                $map[1] = array_merge($map[1], (array)$loaded[1]);
                 
                 //Initialize
                 require_once($entry['Path'].'/Init.php');
+                
+                $map[1][] = realpath($entry['Path'].'/Init.php');
             }
             else if($entry['Type'] === 'Dir') //Loop through content recursive
             {
-                echo '<xmp>';
-                print_r($entry);
-                echo '</xmp>';
+                
+                $loaded = Php2Core::Map($entry['Path']);
+                $map[0] = array_merge($map[0], (array)$loaded[0]);
+                $map[1] = array_merge($map[1], (array)$loaded[1]);
             }
             else if($entry['Type'] === 'File' && preg_match('/\.php/', $entry['Path']) && !preg_match('/init\.php$/i', $entry['Path'])) //Each file check declared components (Classes, Interfaces & Traits)
             {
@@ -88,7 +127,7 @@ class Php2Core
 
                     foreach($difMerged as $class)
                     {
-                        $map[$class] = $entry['Path'];
+                        $map[0][$class] = $entry['Path'];
                     }
                 }
                 catch(\Throwable $ex)
@@ -124,7 +163,7 @@ class Php2Core
 
                     foreach($difMerged as $class)
                     {
-                        $map[$class] = $entry['Path'];
+                        $map[0][$class] = $entry['Path'];
                     }
                     $remove[] = $idx;
                 } 
@@ -170,12 +209,69 @@ class Php2Core
      */
     public static function ExceptionHandler(\Throwable $ex): void
     {
-        echo '<h2>Php2Core::ExceptionHandler</h2>';
-        echo '<xmp>';
-        print_r($ex);
-        echo '</xmp>';
+        $hasBody = false;
+        
+        HTML -> Child('body', function(\Php2Core\NoHTML\Body $body) use(&$hasBody, $ex)
+        {
+            $body -> Clear();
+            $body -> H2('Php2Core::ExceptionHandler');
+            $body -> Xmp(print_r($ex, true));
+
+            $hasBody = true; 
+        });
+        
+        if(!$hasBody)
+        {
+            echo '<h2>Php2Core::ExceptionHandler</h2>';
+            echo '<xmp>';
+            print_r($ex);
+            echo '</xmp>';
+        }
+    }
+    
+    /**
+     * @return void
+     */
+    public static function Shutdown(): void
+    {
+        //Inject execution time & Version
+        HTML -> Child('body', function(\Php2Core\NoHTML\Body $body)
+        {
+            $body -> Div(function(Php2Core\NoHTML\Div $div)
+            {
+                $dif = microtime(true) - TSTART;
+                
+                $div -> Attributes() -> Set('id', 'execution-time');
+                $div -> Raw('Process time: '.number_format(round($dif * 1000, 4), 4, ',', '.').' ms');
+            });
+            $body -> Div(function(\Php2Core\NoHTML\Div $div)
+            {
+                $div -> Attributes() -> Set('id', 'version');
+                VERSION -> Render($div);
+            });
+        });
+        
+        //Inject Php2Core Styles
+        HTML -> Child('head', function(\Php2Core\NoHTML\Head $head)
+        {
+            $head -> Link(function(\Php2Core\NoHTML\Link $link)
+            {
+                $link -> Attributes() -> Set('rel', 'stylesheet');
+                $link -> Attributes() -> Set('href', Php2Core::PhysicalToRelativePath(__DIR__.'/Assets/FA-all.min.5.15.4.css'));
+            });
+            $head -> Link(function(\Php2Core\NoHTML\Link $link)
+            {
+                $link -> Attributes() -> Set('rel', 'stylesheet');
+                $link -> Attributes() -> Set('href', Php2Core::PhysicalToRelativePath(__DIR__.'/Assets/Php2Core.css'));
+            });
+        });
+        
+        //output
+        echo HTML;
     }
 }
+
+define('ROOT', Php2Core::Root());
 
 //define map file;
 $mapFile = __DIR__.'/class.map';
@@ -187,7 +283,7 @@ if(!file_exists($mapFile) || DEBUG) //create map file if not exists
 }
 else //Load map file
 {
-    $map = (array)json_decode(file_get_contents($mapFile));
+    $map = json_decode(file_get_contents($mapFile), true);
 }
 
 define('MAP', $map); //Register map
@@ -195,17 +291,23 @@ define('MAP', $map); //Register map
 //Autoload missing components from map data;
 spl_autoload_register(function(string $className)
 {
-    if(isset(MAP[$className]) && file_exists(MAP[$className]))
+    if(isset(MAP[0][$className]) && file_exists(MAP[0][$className]))
     {
-        require_once(MAP[$className]);
+        require_once(MAP[0][$className]);
         return;
     }
-    else
-    {
-        var_dump($className);
-    }
 });
+
+if(!DEBUG) //Load modules when not in debug mode
+{
+    foreach($map[1] as $module)
+    {
+        require_once($module);
+    }
+}
 
 //register handlers
 set_error_handler('Php2Core::ErrorHandler');
 set_exception_handler('Php2Core::ExceptionHandler');
+register_shutdown_function('Php2Core::Shutdown');
+
