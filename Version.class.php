@@ -141,7 +141,7 @@ class Version
                 {
                     $ul -> Li(function(NoHTML\Li $li) use($child)
                     {
-                        $li -> Append(new NoHTML\FontAwesome\Icon('fad fa-chevron-double-right'));
+                        $li -> IconFA('fad fa-chevron-double-right');
                         $child -> Render($li);
                     });
                 }

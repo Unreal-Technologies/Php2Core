@@ -18,13 +18,12 @@ class Php2Core
      */
     public static function PhysicalToRelativePath(string $path): string
     {
-        $pi = pathinfo($_SERVER['SCRIPT_URI']);
-        $baseUrl = isset($pi['extension']) ? $pi['dirname'] : $_SERVER['SCRIPT_URI'];
-        
+        $basePath = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].pathinfo($_SERVER['SCRIPT_NAME'])['dirname'];
+
         $new = str_replace([ROOT.'\\', '\\', '//', ':/'], ['', '/', '/', '://'], $path);
         if($new !== $path)
         {
-            return $baseUrl.'/'.$new;
+            return $basePath.'/'.$new;
         }
         
         var_dump($path);
@@ -36,12 +35,8 @@ class Php2Core
      */
     public static function Root(): string
     {
-        //Get lowest backtrace
-        $dbbt = debug_backtrace();
-        $last = $dbbt[count($dbbt) - 1];
-        
         //get Directory
-        $pi = pathinfo($last['file']);
+        $pi = pathinfo(__DIR__);
         return $pi['dirname'];
     }
     
@@ -209,10 +204,6 @@ class Php2Core
 
             if(count($skipped) !== 0)
             {
-                echo '<xmp>';
-                var_dump($directory);
-                print_r($skipped);
-                echo '</xmp>';
                 throw new \Exception('Could not get all class data');
             }
         }
@@ -220,138 +211,6 @@ class Php2Core
         $map['Skipped'] = $skipped;
         
         return $map;
-        
-//        $skipped = $map[2];
-//        foreach(Php2Core::ScanDir($directory) as $entry) //Loop Through all Entries
-//        {
-//            if($entry['Path'] === __FILE__ || preg_match('/\.git$/i', $entry['Path'])) // Check if Path is not a git folder and not a self reference
-//            {
-//                continue;
-//            }
-//
-//            if($entry['Type'] === 'Dir' && file_exists($entry['Path'].'/Init.php')) //Check if a init file exists, if so, execute it
-//            {
-//                //Create local map file
-//                $mapFile = $entry['Path'].'/class.map';
-//                if(!file_exists($mapFile) || DEBUG)
-//                {
-//                    file_put_contents($mapFile, json_encode(Php2Core::Map($entry['Path'], $map, true)));
-//                }
-//                
-//                //Import local map
-//                $loaded = json_decode(file_get_contents($mapFile), true);
-//                $map[0] = array_merge($map[0], (array)$loaded[0]);
-//                $map[1] = array_merge($map[1], (array)$loaded[1]);
-//                
-//                //Initialize
-//                require_once($entry['Path'].'/Init.php');
-//                
-//                $map[1][] = realpath($entry['Path'].'/Init.php');
-//            }
-//            else if($entry['Type'] === 'Dir') //Loop through content recursive
-//            {
-//                $loaded = Php2Core::Map($entry['Path'], $map, false);
-//                $map[0] = array_merge($map[0], (array)$loaded[0]);
-//                $map[1] = array_merge($map[1], (array)$loaded[1]);
-//                $skipped = array_merge($skipped, (array)$loaded[2]);
-//            }
-//            else if($entry['Type'] === 'File' && preg_match('/\.php/', $entry['Path']) && !preg_match('/init\.php$/i', $entry['Path'])) //Each file check declared components (Classes, Interfaces & Traits)
-//            {
-//                try
-//                {
-//                    $baseClasses = get_declared_classes();
-//                    $baseInterfaces = get_declared_interfaces();
-//                    $baseTraits = get_declared_traits();
-//
-//                    require_once($entry['Path']);
-//
-//                    $postClasses = get_declared_classes();
-//                    $postInterfaces = get_declared_interfaces();
-//                    $postTraits = get_declared_traits();
-//
-//                    $difClasses = array_diff($postClasses, $baseClasses);
-//                    $difInterfaces = array_diff($postInterfaces, $baseInterfaces);
-//                    $difTraits = array_diff($postTraits, $baseTraits);
-//
-//                    $difMerged = array_merge($difClasses, $difInterfaces, $difTraits);
-//
-//                    foreach($difMerged as $class)
-//                    {
-//                        $map[0][$class] = $entry['Path'];
-//                    }
-//                }
-//                catch(\Throwable $ex)
-//                {
-//                    $skipped[] = $entry;
-//                }
-//            }
-//        }
-//        
-//        $sc = -1;
-//        while($sc !== count($skipped))
-//        {
-//            $remove = [];
-//            foreach($skipped as $idx => $entry)
-//            {
-//                try
-//                {
-//                    $baseClasses = get_declared_classes();
-//                    $baseInterfaces = get_declared_interfaces();
-//                    $baseTraits = get_declared_traits();
-//
-//                    include($entry['Path']);
-//
-//                    $postClasses = get_declared_classes();
-//                    $postInterfaces = get_declared_interfaces();
-//                    $postTraits = get_declared_traits();
-//
-//                    $difClasses = array_diff($postClasses, $baseClasses);
-//                    $difInterfaces = array_diff($postInterfaces, $baseInterfaces);
-//                    $difTraits = array_diff($postTraits, $baseTraits);
-//
-//                    $difMerged = array_merge($difClasses, $difInterfaces, $difTraits);
-//
-//                    foreach($difMerged as $class)
-//                    {
-//                        $map[0][$class] = $entry['Path'];
-//                    }
-//                    $remove[] = $idx;
-//                } 
-//                catch (\Throwable $ex) 
-//                { 
-//                    $map[2][] = $entry;
-//                    $try++;
-//                }
-//            }
-//
-//            foreach($remove as $idx)
-//            {
-//                unset($skipped[$idx]);
-//            }
-//
-//            $sc = count($skipped);
-//        }
-//        
-//        
-//        if(count($skipped) !== 0)
-//        {
-//            if($topMost)
-//            {
-//                throw new \Exception('Could not get all class data');
-//            }
-//            else
-//            {
-//                $map[2] = $skipped;
-//            }
-//        }
-//        
-//        echo '<xmp>';
-//        var_dumP($topMost);
-//        var_dump($directory);
-//        print_r($skipped);
-//        echo '</xmp>';
-//        
-//        return $map;
     }
     
     /**
@@ -428,6 +287,12 @@ class Php2Core
             $children = $head -> Children();
             $head -> Clear();
             
+            $head -> Link(function(\Php2Core\NoHTML\Link $link)
+            {
+                $link -> Attributes() -> Set('rel', 'icon');
+                $link -> Attributes() -> Set('type', 'image/x-icon');
+                $link -> Attributes() -> Set('href', Php2Core::PhysicalToRelativePath(__DIR__.'/Assets/Images/favicon.ico'));
+            });
             $head -> Link(function(\Php2Core\NoHTML\Link $link)
             {
                 $link -> Attributes() -> Set('rel', 'stylesheet');
