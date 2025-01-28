@@ -249,6 +249,7 @@ class Php2Core
             var_dumP($errstr);
             echo '</xmp>';
         }
+        exit;
     }
     
     /**
@@ -281,6 +282,7 @@ class Php2Core
             print_r($ex);
             echo '</xmp>';
         }
+        exit;
     }
     
     /**
@@ -439,4 +441,9 @@ if((int)CONFIGURATION -> Get('Logic/ErrorHandling') === 1)
     set_error_handler('Php2Core::ErrorHandler');
     set_exception_handler('Php2Core::ExceptionHandler');
     register_shutdown_function('Php2Core::Shutdown');
+}
+
+if(ROUTE === null && (int)CONFIGURATION -> Get('Logic/Routing') === 1)
+{
+    throw new \Exception('Route not found');
 }
