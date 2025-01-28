@@ -220,16 +220,25 @@ class Php2Core
     {
         $hasBody = false;
         
-        HTML -> Child('body', function(\Php2Core\NoHTML\Body $body) use(&$hasBody, $errno, $errstr, $errfile, $errline)
+        XHTML -> Get('body', function(Php2Core\NoHTML\XHtml $body) use(&$hasBody, $errno, $errstr, $errfile, $errline)
         {
             $body -> Clear();
-            $body -> H2('Php2Core::ErrorHandler');
-            $body -> Xmp(print_r($errfile.':'.$errline, true));
-            $body -> Xmp(print_r($errstr, true));
-
+            $body -> Add('h2', function(Php2Core\NoHTML\XHtml $h2)
+            {
+                $h2 -> Text('Php2Core::ErrorHandler');
+            });
+            $body -> Add('xmp', function(Php2Core\NoHTML\XHtml $xmp) use($errfile, $errline)
+            {
+                $xmp -> Text(print_r($errfile.':'.$errline, true));
+            });
+            $body -> Add('xmp', function(Php2Core\NoHTML\XHtml $xmp) use($errstr)
+            {
+                $xmp -> Text(print_r($errstr, true));
+            });
+            
             $hasBody = true; 
         });
-        
+
         if(!$hasBody)
         {
             echo '<h2>Php2Core::ErrorHandler</h2>';
@@ -250,12 +259,18 @@ class Php2Core
     {
         $hasBody = false;
         
-        HTML -> Child('body', function(\Php2Core\NoHTML\Body $body) use(&$hasBody, $ex)
+        XHTML -> Get('body', function(Php2Core\NoHTML\XHtml $body) use(&$hasBody, $ex)
         {
             $body -> Clear();
-            $body -> H2('Php2Core::ExceptionHandler');
-            $body -> Xmp(print_r($ex, true));
-
+            $body -> Add('h2', function(Php2Core\NoHTML\XHtml $h2)
+            {
+                $h2 -> Text('Php2Core::ExceptionHandler');
+            });
+            $body -> Add('xmp', function(Php2Core\NoHTML\XHtml $xmp) use($ex)
+            {
+                $xmp -> Text(print_r($ex, true));
+            });
+            
             $hasBody = true; 
         });
         
@@ -273,69 +288,79 @@ class Php2Core
      */
     public static function Shutdown(): void
     {
-        //Inject execution time & Version
-        HTML -> Child('body', function(\Php2Core\NoHTML\Body $body)
+        XHTML -> Get('body', function(Php2Core\NoHTML\XHtml $body)
         {
-            $body -> Div(function(Php2Core\NoHTML\Div $div)
+            $body -> Add('div', function(Php2Core\NoHTML\XHtml $div)
             {
                 $dif = microtime(true) - TSTART;
                 
                 $div -> Attributes() -> Set('id', 'execution-time');
-                $div -> Raw('Process time: '.number_format(round($dif * 1000, 4), 4, ',', '.').' ms');
+                $div -> Text('Process time: '.number_format(round($dif * 1000, 4), 4, ',', '.').' ms');
             });
-            $body -> Div(function(\Php2Core\NoHTML\Div $div)
+            $body -> Add('div', function(\Php2Core\NoHTML\XHtml $div)
             {
                 $div -> Attributes() -> Set('id', 'version');
                 VERSION -> Render($div);
             });
         });
-        
-        //Inject Php2Core Styles
-        HTML -> Child('head', function(\Php2Core\NoHTML\Head $head)
+        XHTML -> Get('head', function(Php2Core\NoHTML\XHtml $head)
         {
-            //Write core head values as top most
-            
             $children = $head -> Children();
             $head -> Clear();
             
-            $head -> Link(function(\Php2Core\NoHTML\Link $link)
+            $head -> Add('link', function(Php2Core\NoHTML\XHtml $link)
             {
                 $link -> Attributes() -> Set('rel', 'icon');
                 $link -> Attributes() -> Set('type', 'image/x-icon');
                 $link -> Attributes() -> Set('href', Php2Core::PhysicalToRelativePath(__DIR__.'/Assets/Images/favicon.ico'));
             });
-            $head -> Link(function(\Php2Core\NoHTML\Link $link)
+            $head -> Add('link', function(Php2Core\NoHTML\XHtml $link)
             {
                 $link -> Attributes() -> Set('rel', 'stylesheet');
                 $link -> Attributes() -> Set('href', Php2Core::PhysicalToRelativePath(__DIR__.'/Assets/FA-all.min.5.15.4.css'));
             });
-            $head -> Link(function(\Php2Core\NoHTML\Link $link)
+            $head -> Add('link', function(Php2Core\NoHTML\XHtml $link)
             {
                 $link -> Attributes() -> Set('rel', 'stylesheet');
                 $link -> Attributes() -> Set('href', Php2Core::PhysicalToRelativePath(__DIR__.'/Assets/Materialize.css'));
             });
-            $head -> Link(function(\Php2Core\NoHTML\Link $link)
+            $head -> Add('link', function(Php2Core\NoHTML\XHtml $link)
             {
                 $link -> Attributes() -> Set('rel', 'stylesheet');
                 $link -> Attributes() -> Set('href', Php2Core::PhysicalToRelativePath(__DIR__.'/Assets/Php2Core.css'));
             });
-            $head -> Link(function(\Php2Core\NoHTML\Link $link)
+            $head -> Add('link', function(Php2Core\NoHTML\XHtml $link)
             {
                 $link -> Attributes() -> Set('rel', 'stylesheet');
                 $link -> Attributes() -> Set('href', 'https://fonts.googleapis.com/icon?family=Material+Icons');
             });
-
-            $head -> ScriptExtern('text/javascript', Php2Core::PhysicalToRelativePath(__DIR__.'/Assets/jquery-3.7.1.min.js'));
-            $head -> ScriptExtern('text/javascript', Php2Core::PhysicalToRelativePath(__DIR__.'/Assets/Materialize.js'));
+            $head -> Add('script', function(Php2Core\NoHTML\XHtml $script)
+            {
+                $script -> Attributes() -> Set('type', 'text/javascript');
+                $script -> Attributes() -> Set('src', Php2Core::PhysicalToRelativePath(__DIR__.'/Assets/jquery-3.7.1.min.js'));
+            });
+            $head -> Add('script', function(Php2Core\NoHTML\XHtml $script)
+            {
+                $script -> Attributes() -> Set('type', 'text/javascript');
+                $script -> Attributes() -> Set('src', Php2Core::PhysicalToRelativePath(__DIR__.'/Assets/Materialize.js'));
+            });
 
             foreach($children as $child)
             {
                 $head -> Append($child);
             }
         });
-        
+
         //output
-        echo HTML;
+        echo XHTML;
+        
+        if(DEBUG && (int)CONFIGURATION -> Get('Configuration/XhtmlOut') === 1)
+        {
+            echo '<hr />';
+            echo '<xmp>';
+            print_r(str_replace(['<xmp>', '</xmp>'], ['<.xmp>', '</.xmp>'], (string)XHTML));
+            echo '</xmp>';
+        }
     }
 }
 

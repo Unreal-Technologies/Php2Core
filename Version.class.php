@@ -113,20 +113,20 @@ class Version
      * @param NoHTML\Raw $container
      * @return void
      */
-    public function Render(NoHTML\Raw $container): void
+    public function Render(NoHTML\XHtml $container): void
     {
         $raw = $this -> _name.' ( '.$this -> _build.'.'.$this -> _major.'.'.$this -> _minor.'.'.$this -> _revision.' )';
         
         //Create Url link where needed
         if($this -> _url === null)
         {
-            $container -> Raw($raw);
+            $container -> Text($raw);
         }
         else
         {
-            $container -> A(function(NoHTML\A $a) use($raw)
+            $container -> Add('a', function(NoHTML\XHtml $a) use($raw)
             {
-                $a -> Raw($raw);
+                $a -> Text($raw);
                 $a -> Attributes() -> Set('href', $this -> _url);
                 $a -> Attributes() -> Set('target', '_blank');
             });
@@ -135,13 +135,14 @@ class Version
         //Go Through Children
         if(count($this -> _children) !== 0)
         {
-            $container -> Ul(function(NoHTML\Ul $ul)
+            $container -> Add('ul', function(NoHTML\XHtml $ul)
             {
                 foreach($this -> _children as $child)
                 {
-                    $ul -> Li(function(NoHTML\Li $li) use($child)
+                    $ul -> Add('li', function(NoHTML\XHtml $li) use($child)
                     {
-                        $li -> IconFA('fad fa-chevron-double-right');
+                        new NoHTML\FontAwesome\Icon($li, 'fad fa-chevron-double-right');
+                        //$li -> IconFA('fad fa-chevron-double-right');
                         $child -> Render($li);
                     });
                 }
