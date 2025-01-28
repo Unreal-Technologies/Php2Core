@@ -6,7 +6,7 @@ class Attributes
     /**
      * @var array
      */
-    private array $_children = [];
+    private array $aChildren = [];
     
     /**
      */
@@ -20,9 +20,9 @@ class Attributes
      * @param string $value
      * @return void
      */
-    public function Set(string $name, string $value): void
+    public function set(string $name, string $value): void
     {
-        $this -> _children[$name] = $value;
+        $this -> aChildren[$name] = $value;
     }
     
     /**
@@ -30,13 +30,13 @@ class Attributes
      */
     public function __toString(): string 
     {
-        if($this -> Count() === 0)
+        if($this -> count() === 0)
         {
             return '';
         }
         
         $buffer = [];
-        foreach($this -> _children as $k => $v)
+        foreach($this -> aChildren as $k => $v)
         {
             $buffer[] = $k.'="'.str_replace(['"', '\\'], ['\"', '\\\\'], $v).'"';
         }
@@ -46,16 +46,16 @@ class Attributes
     /**
      * @return void
      */
-    public function Clear(): void
+    public function clear(): void
     {
-        $this -> _children = [];
+        $this -> aChildren = [];
     }
     
     /**
      * @return int
      */
-    public function Count(): int
+    public function count(): int
     {
-        return count($this -> _children);
+        return count($this -> aChildren);
     }
 }

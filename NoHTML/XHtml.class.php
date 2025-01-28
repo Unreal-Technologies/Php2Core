@@ -11,34 +11,34 @@ class XHtml
     /**
      * @var string
      */
-    private string $_tag = 'html';
+    private string $sTag = 'html';
     
     /**
      * @var string
      */
-    private string $_path = 'html';
+    private string $sPath = 'html';
     
     /**
      * @var int
      */
-    private int $_position = 0;
+    private int $iPosition = 0;
     
     /**
      * @var Attributes
      */
-    private Attributes $_attributes;
+    private Attributes $oAttributes;
     
     /** 
      * @var array
      */
-    private array $_children = [];
+    private array $aChildren = [];
     
     /**
      * @throws \Exception
      */
     public function __construct()
     {
-        $this -> _attributes = new Attributes();
+        $this -> oAttributes = new Attributes();
         if(!defined('XHTML'))
         {
             define('XHTML', $this);
@@ -47,10 +47,10 @@ class XHtml
     
     public function __toString(): string 
     {
-        $tab = str_repeat('  ', $this -> _position);
+        $tab = str_repeat('  ', $this -> iPosition);
         
-        $out = $tab.'<'.$this -> _tag.$this -> _attributes.'>'."\r\n";
-        foreach($this -> _children as $child)
+        $out = $tab.'<'.$this -> sTag.$this -> oAttributes.'>'."\r\n";
+        foreach($this -> aChildren as $child)
         {
             if($child instanceof XHtml)
             {
@@ -61,7 +61,7 @@ class XHtml
                 $out .= $child."\r\n";
             }
         }
-        $out .= $tab.'</'.$this -> _tag.'>'."\r\n";
+        $out .= $tab.'</'.$this -> sTag.'>'."\r\n";
         
         return $out;
     }
@@ -69,9 +69,9 @@ class XHtml
     /**
      * @return Attributes
      */
-    public function Attributes(): Attributes
+    public function attributes(): Attributes
     {
-        return $this -> _attributes;
+        return $this -> oAttributes;
     }
     
     /**
@@ -79,13 +79,13 @@ class XHtml
      * @param \Closure $callback
      * @return void
      */
-    public function Add(string $tag, \Closure $callback=null): void
+    public function add(string $tag, \Closure $callback=null): void
     {
         $obj = new XHtml();
-        $obj -> _tag = $tag;
-        $obj -> _path = $this -> _path.'/'.$tag;
-        $obj -> _position = $this -> _position + 1;
-        $this -> _children[] = $obj;
+        $obj -> sTag = $tag;
+        $obj -> sPath = $this -> sPath.'/'.$tag;
+        $obj -> iPosition = $this -> iPosition + 1;
+        $this -> aChildren[] = $obj;
         
         if($callback !== null)
         {
@@ -97,38 +97,38 @@ class XHtml
      * @param string $text
      * @return void
      */
-    public function Text(string $text): void
+    public function text(string $text): void
     {
-        $this -> _children[] = $text;
+        $this -> aChildren[] = $text;
     }
     
     /**
      * @param string|XHtml $content
      * @return void
      */
-    public function Append(mixed $content): void
+    public function append(mixed $content): void
     {
         if(is_string($content) || $content instanceof XHtml)
         {
-            $this -> _children[] = $content;
+            $this -> aChildren[] = $content;
         }
     }
     
     /**
      * @return (XHtml|string)[]
      */
-    public function Children(): array
+    public function children(): array
     {
-        return $this -> _children;
+        return $this -> aChildren;
     }
     
     /**
      * @return void
      */
-    public function Clear(): void
+    public function clear(): void
     {
-        $this -> _children = [];
-        $this -> _attributes -> Clear();
+        $this -> aChildren = [];
+        $this -> oAttributes -> Clear();
     }
     
     /**
@@ -136,7 +136,7 @@ class XHtml
      * @param \Closure $callback
      * @return void
      */
-    public function Get(string $path, \Closure $callback): void
+    public function get(string $path, \Closure $callback): void
     {
         $components = explode('/', $path);
         $current = [ $this ];
@@ -146,9 +146,9 @@ class XHtml
             $matches = [];
             foreach($current as $cObj)
             {
-                foreach($cObj -> _children as $child)
+                foreach($cObj -> aChildren as $child)
                 {
-                    if($child instanceof XHtml && $child -> _tag === $component)
+                    if($child instanceof XHtml && $child -> sTag === $component)
                     {
                         $matches[] = $child;
                     }

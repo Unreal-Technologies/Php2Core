@@ -6,17 +6,17 @@ class Route
     /**
      * @var string
      */
-    private string $_target;
+    private string $sTarget;
     
     /**
      * @var string[]
      */
-    private array $_parameters;
+    private array $aParameters;
     
     /**
      * @var string[]
      */
-    private array $_queryString;
+    private array $aQueryString;
     
     /**
      * @param string $target
@@ -25,8 +25,8 @@ class Route
      */
     public function __construct(string $target, array $parameters, array $queryString)
     {
-        $this -> _target = $target;
-        $this -> _parameters = $parameters;
-        $this -> _queryString = $queryString;
+        $this -> sTarget = $target;
+        $this -> aParameters = $parameters;
+        $this -> aQueryString = $queryString;
     }
 }

@@ -8,59 +8,60 @@ class Navigation
      */
     public function __construct(\Php2Core\NoHTML\XHtml $container, array $links) 
     {
-        $dropdownCounter = 0;
-        $container -> Add('div', function(\Php2Core\NoHTML\XHtml $div) use($container, $links)
+        $container -> add('div', function(\Php2Core\NoHTML\XHtml $div) use($container, $links)
         {
-            $div -> Attributes() -> Set('class', 'navbar-fixed');
-            $div -> Add('nav', function(\Php2Core\NoHTML\XHtml $nav) use($links, &$dropdownCounter, $container)
+            $dropdownCounter = 0;
+            
+            $div -> attributes() -> set('class', 'navbar-fixed');
+            $div -> add('nav', function(\Php2Core\NoHTML\XHtml $nav) use($links, &$dropdownCounter, $container)
             {
-                $nav -> Add('div', function(\Php2Core\NoHTML\XHtml $div) use($links, &$dropdownCounter, $container)
+                $nav -> add('div', function(\Php2Core\NoHTML\XHtml $div) use($links, &$dropdownCounter, $container)
                 {
-                    $div -> Attributes() -> Set('class', 'nav-wrapper');
-                    $div -> Add('ul', function(\Php2Core\NoHTML\XHtml $ul) use($links, &$dropdownCounter, $container)
+                    $div -> attributes() -> set('class', 'nav-wrapper');
+                    $div -> add('ul', function(\Php2Core\NoHTML\XHtml $ul) use($links, &$dropdownCounter, $container)
                     {
-                         $ul -> Attributes() -> Set('id', 'nav-mobile');
-                         $ul -> Attributes() -> Set('class', 'left hide-on-med-and-down');
+                         $ul -> attributes() -> set('id', 'nav-mobile');
+                         $ul -> attributes() -> set('class', 'left hide-on-med-and-down');
 
                          foreach($links as $link)
                          {
-                             $ul -> Add('li', function(\Php2Core\NoHTML\XHtml $li) use($link, &$dropdownCounter, $container)
+                             $ul -> add('li', function(\Php2Core\NoHTML\XHtml $li) use($link, &$dropdownCounter, $container)
                              {
-                                 $li -> Add('a', function(\Php2Core\NoHTML\XHtml $a) use($link, &$dropdownCounter, $container)
+                                 $li -> add('a', function(\Php2Core\NoHTML\XHtml $a) use($link, &$dropdownCounter, $container)
                                  {
-                                     $a -> Text($link[0]);
+                                     $a -> text($link[0]);
 
                                      if(is_array($link[1]))
                                      {
-                                        $a -> Attributes() -> Set('href', '#!');
-                                        $a -> Attributes() -> Set('class', 'dropdown-trigger');
-                                        $a -> Attributes() -> Set('data-target', 'dropdown'.$dropdownCounter);
+                                        $a -> attributes() -> set('href', '#!');
+                                        $a -> attributes() -> set('class', 'dropdown-trigger');
+                                        $a -> attributes() -> set('data-target', 'dropdown'.$dropdownCounter);
                                         new Icon($a, 'arrow_drop_down');
                                         
                                         $dropLinks = $link[1];
 
-                                        $container -> Add('ul', function(\Php2Core\NoHTML\XHtml $ul) use($dropdownCounter, $dropLinks)
+                                        $container -> add('ul', function(\Php2Core\NoHTML\XHtml $ul) use($dropdownCounter, $dropLinks)
                                         {
-                                            $ul -> Attributes() -> Set('class', 'dropdown-content');
-                                            $ul -> Attributes() -> Set('id', 'dropdown'.$dropdownCounter);
+                                            $ul -> attributes() -> set('class', 'dropdown-content');
+                                            $ul -> attributes() -> set('id', 'dropdown'.$dropdownCounter);
 
                                             foreach($dropLinks as $link)
                                             {
                                                 if($link === null)
                                                 {
-                                                    $ul -> Add('li', function(\Php2Core\NoHTML\XHtml $li)
+                                                    $ul -> add('li', function(\Php2Core\NoHTML\XHtml $li)
                                                     {
-                                                        $li -> Attributes() -> Set('class', 'divider');
+                                                        $li -> attributes() -> set('class', 'divider');
                                                     });
                                                     continue;
                                                 }
 
-                                                $ul -> Add('li', function(\Php2Core\NoHTML\XHtml $li) use($link)
+                                                $ul -> add('li', function(\Php2Core\NoHTML\XHtml $li) use($link)
                                                 {
-                                                    $li -> Add('a', function(\Php2Core\NoHTML\XHtml $a) use($link)
+                                                    $li -> add('a', function(\Php2Core\NoHTML\XHtml $a) use($link)
                                                     {
-                                                        $a -> Text($link[0]);
-                                                        $a -> Attributes() -> Set('href', $link[1]);
+                                                        $a -> text($link[0]);
+                                                        $a -> attributes() -> set('href', $link[1]);
                                                     });
                                                 });
                                             }
@@ -70,7 +71,7 @@ class Navigation
                                      }
                                      else
                                      {
-                                         $a -> Attributes() -> Set('href', $link[1]);
+                                         $a -> attributes() -> set('href', $link[1]);
                                      }
                                  });
                              });
@@ -81,10 +82,10 @@ class Navigation
 
             if($dropdownCounter !== 0)
             {
-                $container -> Add('script', function(\Php2Core\NoHTML\XHtml $script)
+                $container -> add('script', function(\Php2Core\NoHTML\XHtml $script)
                 {
-                    $script -> Attributes() -> Set('type', 'text/javascript');
-                    $script -> Text('$(document).ready(function() 
+                    $script -> attributes() -> set('type', 'text/javascript');
+                    $script -> text('$(document).ready(function() 
 {
     $(".dropdown-trigger").dropdown();
 });');

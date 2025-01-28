@@ -9,10 +9,10 @@ class Icon
      */
     function __construct(\Php2Core\NoHTML\XHtml $obj, string $icon) 
     {
-        $obj -> Add('i', function(\Php2Core\NoHTML\XHtml $i) use($icon)
+        $obj -> add('i', function(\Php2Core\NoHTML\XHtml $i) use($icon)
         {
-            $i -> Attributes() -> Set('class', 'material-icons right');
-            $i -> Text($icon);
+            $i -> attributes() -> set('class', 'material-icons right');
+            $i -> text($icon);
         });
     }
 }

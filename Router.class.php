@@ -6,17 +6,17 @@ class Router
     /**
      * @var string
      */
-    private string $_input = '';
+    private string $sInput = '';
     
     /**
      * @var string[]
      */
-    private array $_querystring = [];
+    private array $aQuerystring = [];
     
     /**
      * @var string[]
      */
-    private array $_routes = [];
+    private array $aRoutes = [];
     
     /**
      * @param string $default
@@ -35,25 +35,25 @@ class Router
             $slug = substr($slug, 1);
         }
         
-        $this -> _querystring = $_GET;
+        $this -> aQuerystring = $_GET;
         
-        $this -> _input = $slug;
+        $this -> sInput = $slug;
     }
     
     /**
      * @return Route|null
      */
-    public function Match(): ?Route
+    public function match(): ?Route
     {
         $method = $_SERVER['REQUEST_METHOD'];
 
-        foreach(array_keys($this -> _routes) as $route)
+        foreach(array_keys($this -> aRoutes) as $route)
         {
             $regex = str_replace('/', '\\/', preg_replace('/\{.+\}/U', '.+', $route));
             
-            if(preg_match('/'.$regex.'/i', $method.'::'.$this -> _input))
+            if(preg_match('/'.$regex.'/i', $method.'::'.$this -> sInput))
             {
-                $iComponents = explode('/', $this -> _input);
+                $iComponents = explode('/', $this -> sInput);
                 $rComponents = explode('/', $route);
                 
                 if(count($iComponents) === count($rComponents))
@@ -67,7 +67,7 @@ class Router
                         }
                     }
                     
-                    return new Route($this -> _routes[$route], $parameters, $this -> _querystring);
+                    return new Route($this -> aRoutes[$route], $parameters, $this -> aQuerystring);
                 }
             }
         }
@@ -79,8 +79,8 @@ class Router
      * @param string $target
      * @return void
      */
-    public function Register(string $route, string $target): void
+    public function register(string $route, string $target): void
     {
-        $this -> _routes[$route] = $target;
+        $this -> aRoutes[$route] = $target;
     }
 }
