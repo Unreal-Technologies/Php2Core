@@ -186,7 +186,7 @@ class Php2Core
                         }
                         $remove[] = $idx;
                     } 
-                    catch (\Throwable $ex) 
+                    catch (\Throwable) 
                     { 
                         $map['Skipped'][] = $entry;
                     }
@@ -319,8 +319,15 @@ class Php2Core
                 $link -> Attributes() -> Set('rel', 'stylesheet');
                 $link -> Attributes() -> Set('href', Php2Core::PhysicalToRelativePath(__DIR__.'/Assets/Php2Core.css'));
             });
+            $head -> Link(function(\Php2Core\NoHTML\Link $link)
+            {
+                $link -> Attributes() -> Set('rel', 'stylesheet');
+                $link -> Attributes() -> Set('href', 'https://fonts.googleapis.com/icon?family=Material+Icons');
+            });
+
+            $head -> ScriptExtern('text/javascript', Php2Core::PhysicalToRelativePath(__DIR__.'/Assets/jquery-3.7.1.min.js'));
             $head -> ScriptExtern('text/javascript', Php2Core::PhysicalToRelativePath(__DIR__.'/Assets/Materialize.js'));
-            
+
             foreach($children as $child)
             {
                 $head -> Append($child);
