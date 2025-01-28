@@ -22,6 +22,7 @@ class Php2Core
         }
         
         var_dump($path);
+        throw new Php2Core\Exceptions\NotImplementedException();
         return '';
     }
     
@@ -82,7 +83,7 @@ class Php2Core
             {
                 continue;
             }
-            
+
             if($entry['Type'] === 'Dir' && file_exists($entry['Path'].'/Init.php')) //Check if a init file exists, if so, execute it
             {
                 //Create local map file
@@ -139,7 +140,7 @@ class Php2Core
                         $map['Classes'][$class] = $entry['Path'];
                     }
                 }
-                catch(\Throwable $ex)
+                catch(\Throwable)
                 {
                     $skipped[] = $entry;
                 }
@@ -217,13 +218,28 @@ class Php2Core
      */
     public static function ErrorHandler(int $errno, string $errstr, string $errfile, int $errline): void
     {
-        echo '<h2>Php2Core::ErrorHandler</h2>';
-        echo '<xmp>';
-        var_dump($errfile);
-        var_dumP($errline);
-        var_dumP($errno);
-        var_dumP($errstr);
-        echo '</xmp>';
+        $hasBody = false;
+        
+        HTML -> Child('body', function(\Php2Core\NoHTML\Body $body) use(&$hasBody, $errno, $errstr, $errfile, $errline)
+        {
+            $body -> Clear();
+            $body -> H2('Php2Core::ErrorHandler');
+            $body -> Xmp(print_r($errfile.':'.$errline, true));
+            $body -> Xmp(print_r($errstr, true));
+
+            $hasBody = true; 
+        });
+        
+        if(!$hasBody)
+        {
+            echo '<h2>Php2Core::ErrorHandler</h2>';
+            echo '<xmp>';
+            var_dump($errfile);
+            var_dumP($errline);
+            var_dumP($errno);
+            var_dumP($errstr);
+            echo '</xmp>';
+        }
     }
     
     /**
@@ -323,44 +339,72 @@ if(!file_exists($configFile))
 {
     file_put_contents($configFile, file_get_contents(__DIR__.'/Assets/Config.default.ini'));
 }
-
-define('CONFIGURATION', parse_ini_file($configFile, true));
-define('DEBUG', (int)CONFIGURATION['Configuration']['Debug'] === 1);
-
-//define map file;
-$mapFile = __DIR__.'/class.map';
-
-if(!file_exists($mapFile) || DEBUG) //create map file if not exists
+$configExtendedFile = ROOT.'/Assets/Config.xml';
+if(!file_exists($configExtendedFile))
 {
-    $map = Php2Core::Map(__DIR__);
-    file_put_contents($mapFile, json_encode($map));
-}
-else //Load map file
-{
-    $map = json_decode(file_get_contents($mapFile), true);
+    file_put_contents($configExtendedFile, file_get_contents(__DIR__.'/Assets/Config.default.xml'));
 }
 
-define('MAP', $map); //Register map
+require_once('Configuration.class.php');
 
-//Autoload missing components from map data;
-spl_autoload_register(function(string $className)
+define('CONFIGURATION', new \Php2Core\Configuration(parse_ini_file($configFile, true)));
+define('DEBUG', (int)CONFIGURATION -> Get('Configuration/Debug') === 1);
+
+if((int)CONFIGURATION -> Get('Logic/Autoloading') === 1)
 {
-    if(isset(MAP['Classes'][$className]) && file_exists(MAP['Classes'][$className]))
+    //define map file;
+    $mapFile = __DIR__.'/class.map';
+
+    if(!file_exists($mapFile) || DEBUG) //create map file if not exists
     {
-        require_once(MAP['Classes'][$className]);
-        return;
+        $map = Php2Core::Map(__DIR__);
+        file_put_contents($mapFile, json_encode($map));
     }
-});
-
-if(!DEBUG) //Load modules when not in debug mode
-{
-    foreach($map['Init'] as $module)
+    else //Load map file
     {
-        require_once($module);
+        $map = json_decode(file_get_contents($mapFile), true);
+    }
+
+    define('MAP', $map); //Register map
+
+    //Autoload missing components from map data;
+    spl_autoload_register(function(string $className)
+    {
+        if(isset(MAP['Classes'][$className]) && file_exists(MAP['Classes'][$className]))
+        {
+            require_once(MAP['Classes'][$className]);
+            return;
+        }
+    });
+
+    if(!DEBUG) //Load modules when not in debug mode
+    {
+        foreach($map['Init'] as $module)
+        {
+            require_once($module);
+        }
+    }
+    
+    CONFIGURATION -> Extend(Php2Core\IO\Common\Xml::fromString($configExtendedFile) -> asXml() -> document());
+    
+    if((int)CONFIGURATION -> Get('Logic/Routing') === 1)
+    {
+        $router = new Php2Core\Router(CONFIGURATION -> Get('DefaultRoute'));
+
+        foreach(CONFIGURATION -> Get('Routes') as $match => $data)
+        {
+            list($method, $target) = $data;
+            $router -> Register($method.'::'.$match, $target);
+        }
+
+        define('ROUTE', $router -> Match());
     }
 }
 
-//register handlers
-set_error_handler('Php2Core::ErrorHandler');
-set_exception_handler('Php2Core::ExceptionHandler');
-register_shutdown_function('Php2Core::Shutdown');
+if((int)CONFIGURATION -> Get('Logic/ErrorHandling') === 1)
+{
+    //register handlers
+    set_error_handler('Php2Core::ErrorHandler');
+    set_exception_handler('Php2Core::ExceptionHandler');
+    register_shutdown_function('Php2Core::Shutdown');
+}
