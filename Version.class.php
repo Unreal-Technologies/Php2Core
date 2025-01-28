@@ -6,42 +6,42 @@ class Version
     /**
      * @var Version[]
      */
-    private $_children = [];
+    private array $_children = [];
     
     /**
      * @var int
      */
-    private $_position = 0;
+    private int $_position = 0;
     
     /**
      * @var string
      */
-    private $_name = '';
+    private string $_name = '';
     
     /**
      * @var int
      */
-    private $_build = 0;
+    private int $_build = 0;
     
     /**
      * @var int
      */
-    private $_major = 0;
+    private int $_major = 0;
     
     /**
      * @var int
      */
-    private $_minor = 0;
+    private int $_minor = 0;
     
     /**
      * @var int
      */
-    private $_revision = 0;
+    private int $_revision = 0;
     
     /**
      * @var string|null
      */
-    private $_url = null;
+    private ?string $_url = null;
     
     /**
      * @param string $name
