@@ -6,42 +6,42 @@ class Version
     /**
      * @var Version[]
      */
-    private array $_children = [];
+    private array $aChildren = [];
     
     /**
      * @var int
      */
-    private int $_position = 0;
+    private int $iPosition = 0;
     
     /**
      * @var string
      */
-    private string $_name = '';
+    private string $sName = '';
     
     /**
      * @var int
      */
-    private int $_build = 0;
+    private int $iBuild = 0;
     
     /**
      * @var int
      */
-    private int $_major = 0;
+    private int $iMajor = 0;
     
     /**
      * @var int
      */
-    private int $_minor = 0;
+    private int $iMinor = 0;
     
     /**
      * @var int
      */
-    private int $_revision = 0;
+    private int $iRevision = 0;
     
     /**
      * @var string|null
      */
-    private ?string $_url = null;
+    private ?string $sUrl = null;
     
     /**
      * @param string $name
@@ -60,9 +60,9 @@ class Version
     /**
      * @return void
      */
-    public function Clear(): void
+    public function clear(): void
     {
-        $this -> _children = [];
+        $this -> aChildren = [];
     }
     
     /**
@@ -74,24 +74,24 @@ class Version
      * @param string|null $url
      * @return void
      */
-    public function Update(string $name, int $build, int $major, int $minor, int $revision, ?string $url = null): void
+    public function update(string $name, int $build, int $major, int $minor, int $revision, ?string $url = null): void
     {
-        $this -> _name = $name;
-        $this -> _build = $build;
-        $this -> _major = $major;
-        $this -> _minor = $minor;
-        $this -> _revision = $revision;
-        $this -> _url = $url;
+        $this -> sName = $name;
+        $this -> iBuild = $build;
+        $this -> iMajor = $major;
+        $this -> iMinor = $minor;
+        $this -> iRevision = $revision;
+        $this -> sUrl = $url;
     }
     
     /**
      * @param Version $version
      * @return void
      */
-    public function Add(Version $version): void
+    public function add(Version $version): void
     {
-        $this -> UpdatePositionRecursive($version, $this -> _position + 1);
-        $this -> _children[] = $version;
+        $this -> UpdatePositionRecursive($version, $this -> iPosition + 1);
+        $this -> aChildren[] = $version;
     }
     
     /**
@@ -99,13 +99,13 @@ class Version
      * @param int $value
      * @return void
      */
-    private function UpdatePositionRecursive(Version $version, int $value): void
+    private function updatePositionRecursive(Version $version, int $value): void
     {
-        $version -> _position = $value;
+        $version -> iPosition = $value;
         
-        foreach($version -> _children as $child)
+        foreach($version -> aChildren as $child)
         {
-            $this -> UpdatePositionRecursive($child, $value + 1);
+            $this -> updatePositionRecursive($child, $value + 1);
         }
     }
     
@@ -113,36 +113,36 @@ class Version
      * @param NoHTML\Raw $container
      * @return void
      */
-    public function Render(NoHTML\Raw $container): void
+    public function render(NoHTML\XHtml $container): void
     {
-        $raw = $this -> _name.' ( '.$this -> _build.'.'.$this -> _major.'.'.$this -> _minor.'.'.$this -> _revision.' )';
+        $raw = $this -> sName.' ( '.$this -> iBuild.'.'.$this -> iMajor.'.'.$this -> iMinor.'.'.$this -> iRevision.' )';
         
         //Create Url link where needed
-        if($this -> _url === null)
+        if($this -> sUrl === null)
         {
-            $container -> Raw($raw);
+            $container -> text($raw);
         }
         else
         {
-            $container -> A(function(NoHTML\A $a) use($raw)
+            $container -> add('a', function(NoHTML\XHtml $a) use($raw)
             {
-                $a -> Raw($raw);
-                $a -> Attributes() -> Set('href', $this -> _url);
-                $a -> Attributes() -> Set('target', '_blank');
+                $a -> text($raw);
+                $a -> attributes() -> set('href', $this -> sUrl);
+                $a -> attributes() -> set('target', '_blank');
             });
         }
         
         //Go Through Children
-        if(count($this -> _children) !== 0)
+        if(count($this -> aChildren) !== 0)
         {
-            $container -> Ul(function(NoHTML\Ul $ul)
+            $container -> add('ul', function(NoHTML\XHtml $ul)
             {
-                foreach($this -> _children as $child)
+                foreach($this -> aChildren as $child)
                 {
-                    $ul -> Li(function(NoHTML\Li $li) use($child)
+                    $ul -> add('li', function(NoHTML\XHtml $li) use($child)
                     {
-                        $li -> IconFA('fad fa-chevron-double-right');
-                        $child -> Render($li);
+                        new NoHTML\FontAwesome\Icon($li, 'fad fa-chevron-double-right');
+                        $child -> render($li);
                     });
                 }
             });
@@ -155,18 +155,18 @@ class Version
     public function __toString(): string 
     {
         $children = [];
-        foreach($this -> _children as $child)
+        foreach($this -> aChildren as $child)
         {
             $children[] = (string)$child;
         }
         
-        return "Version[_children={" . implode(' & ', $children)
-                . "}, _position=" . $this->_position
-                . ", _name=" . $this->_name
-                . ", _build=" . $this->_build
-                . ", _major=" . $this->_major
-                . ", _minor=" . $this->_minor
-                . ", _revision=" . $this->_revision
+        return "Version[aChildren={" . implode(' & ', $children)
+                . "}, iPosition=" . $this->iPosition
+                . ", sName=" . $this->sName
+                . ", iBuild=" . $this->iBuild
+                . ", iMajor=" . $this->iMajor
+                . ", iMinor=" . $this->iMinor
+                . ", iRevision=" . $this->iRevision
                 . "]";
     }
 }
