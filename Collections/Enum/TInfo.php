@@ -2,7 +2,7 @@
 
 namespace Php2Core\Collections\Enum;
 
-trait Info
+trait TInfo
 {
     public static function names(): array
     {
