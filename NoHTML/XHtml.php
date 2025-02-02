@@ -6,7 +6,7 @@ namespace Php2Core\NoHTML;
  *
  * @author Peter
  */
-class XHtml 
+class Xhtml implements IXhtml 
 {
     /**
      * @var string
@@ -36,6 +36,7 @@ class XHtml
     /**
      * @throws \Exception
      */
+    #[\Override]
     public function __construct()
     {
         $this -> oAttributes = new Attributes();
@@ -45,6 +46,10 @@ class XHtml
         }
     }
     
+    /** 
+     * @return string
+     */
+    #[\Override]
     public function __toString(): string 
     {
         $tab = str_repeat('  ', $this -> iPosition);
@@ -69,6 +74,7 @@ class XHtml
     /**
      * @return Attributes
      */
+    #[\Override]
     public function attributes(): Attributes
     {
         return $this -> oAttributes;
@@ -79,6 +85,7 @@ class XHtml
      * @param \Closure $callback
      * @return void
      */
+    #[\Override]
     public function add(string $tag, \Closure $callback=null): void
     {
         $obj = new XHtml();
@@ -97,26 +104,29 @@ class XHtml
      * @param string $text
      * @return void
      */
+    #[\Override]
     public function text(string $text): void
     {
         $this -> aChildren[] = $text;
     }
     
     /**
-     * @param string|XHtml $content
+     * @param string|IXhtml $content
      * @return void
      */
+    #[\Override]
     public function append(mixed $content): void
     {
-        if(is_string($content) || $content instanceof XHtml)
+        if(is_string($content) || $content instanceof IXhtml)
         {
             $this -> aChildren[] = $content;
         }
     }
     
     /**
-     * @return (XHtml|string)[]
+     * @return (IXhtml|string)[]
      */
+    #[\Override]
     public function children(): array
     {
         return $this -> aChildren;
@@ -125,6 +135,7 @@ class XHtml
     /**
      * @return void
      */
+    #[\Override]
     public function clear(): void
     {
         $this -> aChildren = [];
@@ -136,6 +147,7 @@ class XHtml
      * @param \Closure $callback
      * @return void
      */
+    #[\Override]
     public function get(string $path, \Closure $callback): void
     {
         $components = explode('/', $path);

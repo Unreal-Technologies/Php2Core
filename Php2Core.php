@@ -2,6 +2,316 @@
 class Php2Core
 {
     /**
+     * @return void
+     */
+    public static function initialize(): void
+    {
+        self::initializeStart();
+        self::initializeVersion();
+        self::initializeRoot();
+        self::initializeConfiguration();
+        self::initializeAutoloading();
+        self::initializeHandlerOverride();
+        self::initializeDatabase();
+        self::initializeServerAdminCommands();
+        self::initializeRouting();
+        self::executeServerAdminCommands();
+    }
+    
+    /**
+     * @return void
+     */
+    private static function resetDatabases(): void //Callable Server Command
+    {
+        $appDbc = Php2Core\Db\Database::getInstance(TITLE);
+        $coreDbc = Php2Core\Db\Database::getInstance('Php2Core');
+        
+        $appDbc -> query('drop database `'.$appDbc -> database().'`;');
+        $appDbc -> execute();
+        
+        $coreDbc -> query('drop database `'.$coreDbc -> database().'`;');
+        $coreDbc -> execute();
+        
+        self::initializeDatabase();
+        
+        $pi = pathinfo($_SERVER['SCRIPT_NAME']);
+        $url = preg_replace('/'.substr($pi['dirname'], 1).'.+$/i', substr($pi['dirname'], 1), $_SERVER['SCRIPT_URI']);
+        
+        header('Location: '.$url);
+        exit;
+    }
+    
+    /**
+     * @return void
+     */
+    private static function executeServerAdminCommands(): void
+    {
+        $info = ROUTE -> target();
+        if(SERVER_ADMIN && $info['type'] === 'function')
+        {
+            eval($info['target'].'();');
+            exit;
+        }
+    }
+    
+    /**
+     * @param string $slug
+     * @return array
+     */
+    private static function getPossibleMatchesFromSlug(string $slug): array
+    {
+        $parts = explode('/', $slug);
+        $buffer = [ '^'.$parts[0].'$' ];
+        $offParts = [ $parts[0] ];
+        
+        for($i=1; $i<count($parts); $i++)
+        {
+            $offParts[$i] = '{.+}';
+            
+            $temp1 = implode('\\/', array_slice($parts, 0, $i));
+            $temp2 = implode('\\/', array_slice($offParts, 0, $i));
+            
+            $buffer[] = '^'.$temp1.'\\/'.$parts[$i].'$';
+            $buffer[] = '^'.$temp2.'\\/'.$parts[$i].'$';
+            
+            $buffer[] = '^'.$temp1.'\\/{.+}$';
+            $buffer[] = '^'.$temp2.'\\/{.+}$';
+        }
+        
+        return array_values(array_unique($buffer));
+    }
+    
+    /**
+     * @return void
+     * @throws \Exception
+     */
+    private static function initializeRouting(): void
+    {
+        //Get DB Instance
+        $coreDbc = Php2Core\Db\Database::getInstance('Php2Core');
+        $instanceId = 1;
+
+        //Get Default handler
+        $coreDbc -> query(
+                'select '
+                . 'case when `match` is null then \'index\' else `match` end as `match` '
+                . 'from `route` '
+                . 'where `default` = "true" '
+                . 'and '.(SERVER_ADMIN ? '( `instance-id` = '.$instanceId.' or `instance-id` is null )' : '`instance-id` = '.$instanceId).' '
+                . 'order by `id` asc '
+                . 'limit 0,1'
+        );
+        
+        $defaultResults = $coreDbc -> execute();
+        define('DEFAULT_ROUTE', $defaultResults['iRowCount'] === 0 ? 'index' : $defaultResults['aResults'][0]['match']);
+        
+        //Get Router Information
+        $router = new Php2Core\Router(DEFAULT_ROUTE);
+        $slug = $router -> slug();
+        $possibilities = self::getPossibleMatchesFromSlug($slug);
+        
+        //Get Possible routes
+        $coreDbc -> query(
+                'select '
+                . '`method`, `match`, `target`, `type` '
+                . 'from `route` '
+                . 'where '.(SERVER_ADMIN ? '( `instance-id` = '.$instanceId.' or `instance-id` is null )' : '`instance-id` = '.$instanceId).' '
+                . 'and (`match` regexp \''.implode('\' or `match` regexp \'', $possibilities).'\')'
+                . (SERVER_ADMIN ? '' : 'and `type` != \'function\' ')
+        );
+        
+        //Register possible routes
+        $routeResult = $coreDbc -> execute();
+        foreach($routeResult['aResults'] as $row)
+        {
+            $router -> register($row['method'].'::'.$row['match'], $row['type'].'#'.$row['target']);
+        }
+        
+        //get current route (if matched)
+        define('ROUTE', $router -> Match());
+        
+        //throw exception when not actually matched
+        if(ROUTE === null)
+        {
+            throw new \Exception('Route not found');
+        }
+    }
+    
+    /**
+     * @return void
+     */
+    private static function initializeServerAdminCommands(): void
+    {
+        $ip = $_SERVER['REMOTE_ADDR'];
+        define('SERVER_ADMIN', preg_match('/'.$ip.'/i', CONFIGURATION -> get('RemoteAdmin/IPs')));
+    }
+    
+    /**
+     * @return void
+     */
+    private static function initializeDatabase(): void
+    {
+        $dbInfo1 = CONFIGURATION -> get('Database');
+        $dbInfo2 = CONFIGURATION -> get('CDatabase');
+        
+        $dbc1 = Php2Core\Db\Database::createInstance(TITLE, $dbInfo1['Host'], $dbInfo1['Username'], $dbInfo1['Password'], $dbInfo1['Database']);
+        $dbc2 = Php2Core\Db\Database::createInstance('Php2Core', $dbInfo2['Host'], $dbInfo2['Username'], $dbInfo2['Password'], $dbInfo2['Database']);
+        
+        if(!defined('Database'))
+        {
+            define('Database', [$dbc1, $dbc2]);
+        }
+        
+        self::initializeDatabaseOverride($dbc2, $dbInfo2);
+        self::initializeDatabaseOverride($dbc1, $dbInfo1);
+    }
+    
+    /**
+     * @param Php2Core\Db\Database $instance
+     * @param array $configuration
+     * @return void
+     * @throws \PDOException
+     */
+    private static function initializeDatabaseOverride(Php2Core\Db\Database $instance, array $configuration): void
+    {
+        $instance -> query('SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = \''.$configuration['Database'].'\'');
+        
+        try
+        {
+            $instance -> execute();
+        } 
+        catch (\PDOException $pex) 
+        {
+            if($pex -> getCode() === 1049)
+            {
+                $structureFile = realpath(str_replace(['{ROOT}', '{__DIR__}'], [ROOT, __DIR__], $configuration['Structure']));
+                $contentFile = realpath(str_replace(['{ROOT}', '{__DIR__}'], [ROOT, __DIR__], $configuration['Content']));
+                
+                if($structureFile !== false)
+                {
+                    $instance -> query(file_get_contents($structureFile));
+                    $instance -> execute(Php2Core\Db\Cache::CACHE_MEMORY, true);
+                }
+                
+                if($contentFile !== false)
+                {
+                    include($contentFile);
+                }
+                return;
+            }
+            throw $pex;
+        }
+        
+    }
+    
+    /**
+     * @return void
+     */
+    private static function initializeHandlerOverride(): void
+    {
+        if((int)CONFIGURATION -> Get('Logic/ErrorHandling') === 1)
+        {
+            //register handlers
+            set_error_handler('Php2Core::ErrorHandler');
+            set_exception_handler('Php2Core::ExceptionHandler');
+            register_shutdown_function('Php2Core::Shutdown');
+        }
+    }
+    
+    /**
+     * @return void
+     */
+    private static function initializeAutoloading(): void
+    {
+        if((int)CONFIGURATION -> Get('Logic/Autoloading') === 1)
+        {
+            //define map file;
+            $mapFile = __DIR__.'/class.map';
+
+            if(!file_exists($mapFile) || DEBUG) //create map file if not exists
+            {
+                $map = Php2Core::Map(__DIR__);
+                file_put_contents($mapFile, json_encode($map));
+            }
+            else //Load map file
+            {
+                $map = json_decode(file_get_contents($mapFile), true);
+            }
+
+            define('MAP', $map); //Register map
+
+            //Autoload missing components from map data;
+            spl_autoload_register(function(string $className)
+            {
+                if(isset(MAP['Classes'][$className]) && file_exists(MAP['Classes'][$className]))
+                {
+                    require_once(MAP['Classes'][$className]);
+                    return;
+                }
+            });
+
+            if(!DEBUG) //Load modules when not in debug mode
+            {
+                foreach($map['Init'] as $module)
+                {
+                    require_once($module);
+                }
+            }
+        }
+    }
+    
+    /**
+     * @return void
+     */
+    private static function initializeConfiguration(): void
+    {
+        $appConfigFile = ROOT.'/Assets/Config.ini';
+        $coreConfigFile = __DIR__.'/Assets/Config.ini';
+        if(!file_exists($appConfigFile))
+        {
+            file_put_contents($appConfigFile, file_get_contents(__DIR__.'/Assets/Config.default.ini'));
+        }
+        if(!file_exists($coreConfigFile))
+        {
+            file_put_contents($coreConfigFile, file_get_contents(__DIR__.'/Assets/Config.default.ini'));
+        }
+        
+        require_once('Configuration.php');
+
+        define('CONFIGURATION', new \Php2Core\Configuration(
+            array_merge(parse_ini_file($appConfigFile, true), parse_ini_file($coreConfigFile, true)),
+        ));
+        define('DEBUG', (int)CONFIGURATION -> Get('Configuration/Debug') === 1);
+        define('TITLE', CONFIGURATION -> Get('Configuration/Title'));
+    }
+    
+    /**
+     * @return void
+     */
+    private static function initializeStart(): void
+    {
+        define('TSTART', microtime(true));
+        session_start();
+    }
+    
+    /**
+     * @return void
+     */
+    private static function initializeRoot(): void
+    {
+        define('ROOT', self::root());
+    }
+    
+    /**
+     * @return void
+     */
+    private static function initializeVersion(): void
+    {
+        require_once('Version.php');
+        define('VERSION', new Php2Core\Version('Php2Core', 1,0,0,0, 'https://github.com/Unreal-Technologies/Php2Core'));
+    }
+    
+    /**
      * @param string $path
      * @return string
      */
@@ -22,7 +332,7 @@ class Php2Core
     /**
      * @return string
      */
-    public static function root(): string
+    private static function root(): string
     {
         //get Directory
         $pi = pathinfo(__DIR__);
