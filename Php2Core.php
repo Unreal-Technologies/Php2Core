@@ -196,7 +196,7 @@ class Php2Core
             //define map file;
             $mapFile = __DIR__.'/class.map';
 
-            if(!file_exists($mapFile) || DEBUG) //create map file if not exists
+            if(!file_exists($mapFile)) //create map file if not exists
             {
                 $map = Php2Core::Map(__DIR__);
                 file_put_contents($mapFile, json_encode($map));
@@ -218,12 +218,9 @@ class Php2Core
                 }
             });
 
-            if(!DEBUG) //Load modules when not in debug mode
+            foreach($map['Init'] as $module)
             {
-                foreach($map['Init'] as $module)
-                {
-                    require_once($module);
-                }
+                require_once($module);
             }
         }
     }
