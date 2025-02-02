@@ -40,3 +40,13 @@
 {
     padding-right: 5px;
 }
+
+.vertical-divider
+{
+    border-width: 0px;
+    display: block;
+    background-color: white;
+    width: 1px;
+    height: 100%;
+    border-style: solid;
+}

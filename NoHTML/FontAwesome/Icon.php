@@ -4,12 +4,12 @@ namespace Php2Core\NoHTML\FontAwesome;
 class Icon
 {
     /**
-     * @param \Php2Core\NoHTML\XHtml $obj
+     * @param \Php2Core\NoHTML\IXhtml $container
      * @param string $icon
      */
-    public function __construct(\Php2Core\NoHTML\XHtml $obj, string $icon) 
+    public function __construct(\Php2Core\NoHTML\IXhtml $container, string $icon) 
     {
-        $obj -> Add('i', function(\Php2Core\NoHTML\XHtml $i) use($icon)
+        $container -> Add('i', function(\Php2Core\NoHTML\IXhtml $i) use($icon)
         {
             $i -> Attributes() -> Set('class', $icon);
         });

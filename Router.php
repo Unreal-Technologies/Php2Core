@@ -41,6 +41,14 @@ class Router
     }
     
     /**
+     * @return string
+     */
+    public function slug(): string
+    {
+        return $this -> sInput;
+    }
+    
+    /**
      * @return Route|null
      */
     public function match(): ?Route
@@ -67,7 +75,7 @@ class Router
                         }
                     }
                     
-                    return new Route($this -> aRoutes[$route], $parameters, $this -> aQuerystring);
+                    return new Route($route, $this -> aRoutes[$route], $parameters, $this -> aQuerystring);
                 }
             }
         }
