@@ -1,6 +1,10 @@
 <?php
+require_once('Php2Core/TServerAdminCommands.php');
+
 class Php2Core
 {
+    use Php2Core\Php2Core\TServerAdminCommands;
+    
     /**
      * @return void
      */
@@ -17,41 +21,14 @@ class Php2Core
         self::initializeRouting();
         self::executeServerAdminCommands();
     }
-    
+
     /**
-     * @return void
+     * @return string
      */
-    private static function resetDatabases(): void //Callable Server Command
+    public static function baseUrl(): string
     {
-        $appDbc = Php2Core\Db\Database::getInstance(TITLE);
-        $coreDbc = Php2Core\Db\Database::getInstance('Php2Core');
-        
-        $appDbc -> query('drop database `'.$appDbc -> database().'`;');
-        $appDbc -> execute();
-        
-        $coreDbc -> query('drop database `'.$coreDbc -> database().'`;');
-        $coreDbc -> execute();
-        
-        self::initializeDatabase();
-        
         $pi = pathinfo($_SERVER['SCRIPT_NAME']);
-        $url = preg_replace('/'.substr($pi['dirname'], 1).'.+$/i', substr($pi['dirname'], 1), $_SERVER['SCRIPT_URI']);
-        
-        header('Location: '.$url);
-        exit;
-    }
-    
-    /**
-     * @return void
-     */
-    private static function executeServerAdminCommands(): void
-    {
-        $info = ROUTE -> target();
-        if(SERVER_ADMIN && $info['type'] === 'function')
-        {
-            eval($info['target'].'();');
-            exit;
-        }
+        return preg_replace('/'.substr($pi['dirname'], 1).'.+$/i', substr($pi['dirname'], 1), $_SERVER['SCRIPT_URI']);
     }
     
     /**
@@ -135,15 +112,6 @@ class Php2Core
         {
             throw new \Exception('Route not found');
         }
-    }
-    
-    /**
-     * @return void
-     */
-    private static function initializeServerAdminCommands(): void
-    {
-        $ip = $_SERVER['REMOTE_ADDR'];
-        define('SERVER_ADMIN', preg_match('/'.$ip.'/i', CONFIGURATION -> get('RemoteAdmin/IPs')));
     }
     
     /**
