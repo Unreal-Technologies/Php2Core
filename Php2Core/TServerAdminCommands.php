@@ -37,7 +37,7 @@ trait TServerAdminCommands
      */
     private static function classMap(): void //Callable Server Command
     {
-        self::createClassMap();
+        self::removeClassMap();
         header('Location: '.self::baseUrl());
         exit;
     }
@@ -52,6 +52,29 @@ trait TServerAdminCommands
         {
             eval($info['target'].'();');
             exit;
+        }
+    }
+    
+    /**
+     * @return void
+     */
+    private static function removeClassMap($directory=__DIR__.'/..'): void
+    {
+        foreach(self::ScanDir($directory) as $entry) //Loop Through all Entries
+        {
+            $pi = pathinfo($entry['Path']);
+            if($entry['Type'] === 'File' && $pi['basename'] === 'class.map')
+            {
+                unlink($entry['Path']);
+            }
+            else if($entry['Type'] === 'Dir' && $pi['basename'] === '.git')
+            {
+                continue;
+            }
+            else if($entry['Type'] === 'Dir')
+            {
+                self::removeClassMap($entry['Path']);
+            }
         }
     }
 }

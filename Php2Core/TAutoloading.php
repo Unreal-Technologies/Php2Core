@@ -15,7 +15,7 @@ trait TAutoloading
 
             if(!file_exists($mapFile)) //create map file if not exists
             {
-                $map = self::Map(__DIR__.'/..');
+                $map = self::map(__DIR__.'/..');
                 file_put_contents($mapFile, json_encode($map));
             }
             else //Load map file
@@ -41,7 +41,7 @@ trait TAutoloading
             }
         }
     }
-    
+
     /**
      * @param string $directory
      * @return array
