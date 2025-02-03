@@ -1,4 +1,4 @@
-#execution-time, #version
+#execution-time, #version, #copyright
 {
     color: gray;
     position: fixed;
@@ -12,7 +12,12 @@
 {
     right: 0px;
     left: unset;
-    padding: 5px;
+}
+
+#copyright
+{
+    width: 100%;
+    text-align: center;
 }
 
 #version ul
