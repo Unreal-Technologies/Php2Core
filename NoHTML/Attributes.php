@@ -17,6 +17,19 @@ class Attributes
     
     /**
      * @param string $name
+     * @return string|null
+     */
+    public function get(string $name): ?string
+    {
+        if(isset($this -> aChildren[$name]))
+        {
+            return $this -> aChildren[$name];
+        }
+        return null;
+    }
+    
+    /**
+     * @param string $name
      * @param string $value
      * @return void
      */
