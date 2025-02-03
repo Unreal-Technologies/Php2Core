@@ -41,13 +41,13 @@ trait TDatabase
         {
             if($pex -> getCode() === 1049)
             {
-                $structureFile = realpath(str_replace(['{ROOT}', '{__DIR__}'], [ROOT, __DIR__], $configuration['Structure']));
-                $contentFile = realpath(str_replace(['{ROOT}', '{__DIR__}'], [ROOT, __DIR__], $configuration['Content']));
+                $structureFile = realpath(str_replace(['{ROOT}', '{__DIR__}'], [ROOT, __DIR__.'/..'], $configuration['Structure']));
+                $contentFile = realpath(str_replace(['{ROOT}', '{__DIR__}'], [ROOT, __DIR__.'/..'], $configuration['Content']));
                 
                 if($structureFile !== false)
                 {
                     $instance -> query(file_get_contents($structureFile));
-                    $instance -> execute(Php2Core\Db\Cache::CACHE_MEMORY, true);
+                    $instance -> execute(\Php2Core\Db\Cache::CACHE_MEMORY, true);
                 }
                 
                 if($contentFile !== false)
