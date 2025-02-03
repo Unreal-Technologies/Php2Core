@@ -8,7 +8,7 @@ trait THandlers
      */
     private static function initializeHandlerOverride(): void
     {
-        if((int)CONFIGURATION -> Get('Logic/ErrorHandling') === 1)
+        if((int)CONFIGURATION -> get('Logic/ErrorHandling') === 1)
         {
             //register handlers
             set_error_handler('Php2Core::ErrorHandler');
@@ -28,23 +28,13 @@ trait THandlers
     {
         $hasBody = false;
         
-        XHTML -> Get('body', function(\Php2Core\NoHTML\XHtml $body) use(&$hasBody, $errno, $errstr, $errfile, $errline)
+        XHTML -> get('body', function(\Php2Core\NoHTML\Xhtml $body) use(&$hasBody, $errno, $errstr, $errfile, $errline)
         {
-            $body -> Clear();
-            $body -> Add('h2', function(\Php2Core\NoHTML\XHtml $h2)
-            {
-                $h2 -> Text('Php2Core::ErrorHandler');
-            });
-            $body -> Add('xmp', function(\Php2Core\NoHTML\XHtml $xmp) use($errfile, $errline)
-            {
-                $xmp -> Text(print_r($errfile.':'.$errline, true));
-            });
-            $body -> Add('xmp', function(\Php2Core\NoHTML\XHtml $xmp) use($errstr, $errno)
-            {
-                $xmp -> Text($errno.' ');
-                $xmp -> Text(print_r($errstr, true));
-            });
-            
+            $body -> clear();
+            $body -> add('h2') -> text('Php2Core::ErrorHandler');
+            $body -> add('xmp') -> text(print_r($errfile.':'.$errline, true));
+            $body -> add('xmp') -> text($errno."\r\n".print_r($errstr, true));
+
             $hasBody = true; 
         });
 
@@ -69,18 +59,12 @@ trait THandlers
     {
         $hasBody = false;
         
-        XHTML -> Get('body', function(\Php2Core\NoHTML\XHtml $body) use(&$hasBody, $ex)
+        XHTML -> get('body', function(\Php2Core\NoHTML\Xhtml $body) use(&$hasBody, $ex)
         {
-            $body -> Clear();
-            $body -> Add('h2', function(\Php2Core\NoHTML\XHtml $h2)
-            {
-                $h2 -> Text('Php2Core::ExceptionHandler');
-            });
-            $body -> Add('xmp', function(\Php2Core\NoHTML\XHtml $xmp) use($ex)
-            {
-                $xmp -> Text(print_r($ex, true));
-            });
-            
+            $body -> clear();
+            $body -> add('h2') -> text('Php2Core::ExceptionHandler');
+            $body -> add('xmp') -> text(print_r($ex, true));
+
             $hasBody = true; 
         });
         
@@ -99,58 +83,53 @@ trait THandlers
      */
     public static function shutdown(): void
     {
-        XHTML -> Get('body', function(\Php2Core\NoHTML\XHtml $body)
+        XHTML -> get('body', function(\Php2Core\NoHTML\Xhtml $body)
         {
-            $body -> Add('div', function(\Php2Core\NoHTML\XHtml $div)
+            $dif = microtime(true) - TSTART;
+            
+            $body -> add('div@#execution-time') -> text('Process time: '.number_format(round($dif * 1000, 4), 4, ',', '.').' ms');
+            $body -> add('div@#version', function(\Php2Core\NoHTML\Xhtml $div)
             {
-                $dif = microtime(true) - TSTART;
-                
-                $div -> Attributes() -> Set('id', 'execution-time');
-                $div -> Text('Process time: '.number_format(round($dif * 1000, 4), 4, ',', '.').' ms');
-            });
-            $body -> Add('div', function(\Php2Core\NoHTML\XHtml $div)
-            {
-                $div -> Attributes() -> Set('id', 'version');
                 VERSION -> Render($div);
             });
         });
-        XHTML -> Get('head', function(\Php2Core\NoHTML\XHtml $head)
+        XHTML -> get('head', function(\Php2Core\NoHTML\Xhtml $head)
         {
-            $children = $head -> Children();
-            $head -> Clear();
+            $children = $head -> children();
+            $head -> clear();
             
-            $head -> Add('link', function(\Php2Core\NoHTML\XHtml $link)
+            $head -> add('link', function(\Php2Core\NoHTML\Xhtml $link)
             {
                 $link -> Attributes() -> Set('rel', 'icon');
                 $link -> Attributes() -> Set('type', 'image/x-icon');
                 $link -> Attributes() -> Set('href', self::PhysicalToRelativePath(__DIR__.'/../Assets/Images/favicon.ico'));
             });
-            $head -> Add('link', function(\Php2Core\NoHTML\XHtml $link)
+            $head -> add('link', function(\Php2Core\NoHTML\Xhtml $link)
             {
                 $link -> Attributes() -> Set('rel', 'stylesheet');
                 $link -> Attributes() -> Set('href', self::PhysicalToRelativePath(__DIR__.'/../Assets/FA-all.min.5.15.4.css'));
             });
-            $head -> Add('link', function(\Php2Core\NoHTML\XHtml $link)
+            $head -> add('link', function(\Php2Core\NoHTML\Xhtml $link)
             {
                 $link -> Attributes() -> Set('rel', 'stylesheet');
                 $link -> Attributes() -> Set('href', self::PhysicalToRelativePath(__DIR__.'/../Assets/Materialize.css'));
             });
-            $head -> Add('link', function(\Php2Core\NoHTML\XHtml $link)
+            $head -> add('link', function(\Php2Core\NoHTML\Xhtml $link)
             {
                 $link -> Attributes() -> Set('rel', 'stylesheet');
                 $link -> Attributes() -> Set('href', self::PhysicalToRelativePath(__DIR__.'/../Assets/Php2Core.css'));
             });
-            $head -> Add('link', function(\Php2Core\NoHTML\XHtml $link)
+            $head -> add('link', function(\Php2Core\NoHTML\Xhtml $link)
             {
                 $link -> Attributes() -> Set('rel', 'stylesheet');
                 $link -> Attributes() -> Set('href', 'https://fonts.googleapis.com/icon?family=Material+Icons');
             });
-            $head -> Add('script', function(\Php2Core\NoHTML\XHtml $script)
+            $head -> add('script', function(\Php2Core\NoHTML\Xhtml $script)
             {
                 $script -> Attributes() -> Set('type', 'text/javascript');
                 $script -> Attributes() -> Set('src', self::PhysicalToRelativePath(__DIR__.'/../Assets/jquery-3.7.1.min.js'));
             });
-            $head -> Add('script', function(\Php2Core\NoHTML\XHtml $script)
+            $head -> add('script', function(\Php2Core\NoHTML\Xhtml $script)
             {
                 $script -> Attributes() -> Set('type', 'text/javascript');
                 $script -> Attributes() -> Set('src', self::PhysicalToRelativePath(__DIR__.'/../Assets/Materialize.js'));
@@ -165,7 +144,7 @@ trait THandlers
         //output
         echo XHTML;
         
-        if(DEBUG && (int)CONFIGURATION -> Get('Configuration/XhtmlOut') === 1)
+        if(DEBUG && (int)CONFIGURATION -> get('Configuration/XhtmlOut') === 1)
         {
             echo '<hr />';
             echo '<xmp>';

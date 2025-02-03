@@ -83,21 +83,67 @@ class Xhtml implements IXhtml
     /**
      * @param string $tag
      * @param \Closure $callback
-     * @return void
+     * @return Xhtml
+     * @throws \Php2Core\Exceptions\NotImplementedException
      */
     #[\Override]
-    public function add(string $tag, \Closure $callback=null): void
+    public function add(string $tag, \Closure $callback=null): Xhtml
     {
-        $obj = new XHtml();
-        $obj -> sTag = $tag;
-        $obj -> sPath = $this -> sPath.'/'.$tag;
-        $obj -> iPosition = $this -> iPosition + 1;
-        $this -> aChildren[] = $obj;
+        $current = $this;
+        $components = explode('/', $tag);
         
-        if($callback !== null)
+        foreach($components as $idx => $component)
         {
-            $callback($obj);
+            $cParts = explode('@', $component);
+            $component = $cParts[0];
+            $extra = isset($cParts[1]) ? $cParts[1] : null;
+            
+            $obj = new XHtml();
+            $obj -> sTag = $component;
+            $obj -> sPath = $current -> sPath.'/'.$component;
+            $obj -> iPosition = $current -> iPosition + 1;
+            $current -> aChildren[] = $obj;
+            
+            $hasExtra = $extra !== null;
+            if($hasExtra)
+            {
+                $extras = explode('&', $extra);
+                
+                foreach($extras as $e)
+                {
+                    $isClass = substr($e, 0, 1) === '.';
+                    $isId = substr($e, 0, 1) === '#';
+                    $isOther = !$isClass && !$isId;
+
+                    $attributes = $obj -> attributes();
+
+                    if($isClass)
+                    {
+                        $attributes -> set('class', substr($e, 1));
+                    }
+
+                    if($isId)
+                    {
+                        $attributes -> set('id', substr($e, 1));
+                    }
+
+                    if($isOther)
+                    {
+                        list($k, $v) = explode('=', $e);
+                        $attributes -> set($k, $v);
+                    }
+                }
+            }
+            
+            if($idx === count($components) - 1 && $callback !== null)
+            {
+                $callback($obj);
+            }
+            
+            $current = $obj;
         }
+        
+        return $current;
     }
     
     /**
@@ -155,6 +201,10 @@ class Xhtml implements IXhtml
         
         foreach($components as $component)
         {
+            $cParts = explode('@', $component);
+            $component = $cParts[0];
+            $extra = isset($cParts[1]) ? $cParts[1] : null;
+
             $matches = [];
             foreach($current as $cObj)
             {
@@ -162,7 +212,40 @@ class Xhtml implements IXhtml
                 {
                     if($child instanceof XHtml && $child -> sTag === $component)
                     {
-                        $matches[] = $child;
+                        $stateExtraOK = $extra === null;
+                        
+                        if(!$stateExtraOK)
+                        {
+                            $isClass = substr($extra, 0, 1) === '.';
+                            $isId = substr($extra, 0, 1) === '#';
+                            $isOther = !$isClass && !$isId;
+                            
+                            $attributes = $child -> attributes();
+                            
+                            if($isClass)
+                            {
+                                $cls = $attributes -> get('class');
+                                if($cls === substr($extra, 1))
+                                {
+                                    $stateExtraOK = true;
+                                }
+                            }
+                            
+                            if($isId)
+                            {
+                                throw new \Php2Core\Exceptions\NotImplementedException($extra);
+                            }
+                            
+                            if($isOther)
+                            {
+                                throw new \Php2Core\Exceptions\NotImplementedException($extra);
+                            }
+                        }
+
+                        if($stateExtraOK)
+                        {
+                            $matches[] = $child;
+                        }
                     }
                 }
             }
