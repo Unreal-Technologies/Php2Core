@@ -4,6 +4,7 @@ require_once('Php2Core/TDatabase.php');
 require_once('Php2Core/TRouting.php');
 require_once('Php2Core/TAutoloading.php');
 require_once('Php2Core/THandlers.php');
+require_once('Php2Core/TOtherInitializers.php');
 
 class Php2Core
 {
@@ -12,23 +13,7 @@ class Php2Core
     use \Php2Core\Php2Core\TRouting;
     use \Php2Core\Php2Core\TAutoloading;
     use \Php2Core\Php2Core\THandlers;
-    
-    /**
-     * @return void
-     */
-    public static function initialize(): void
-    {
-        self::initializeStart();
-        self::initializeVersion();
-        self::initializeRoot();
-        self::initializeConfiguration();
-        self::initializeAutoloading();
-        self::initializeHandlerOverride();
-        self::initializeDatabase();
-        self::initializeServerAdminCommands();
-        self::initializeRouting();
-        self::executeServerAdminCommands();
-    }
+    use Php2Core\Php2Core\TOtherInitializers;
 
     /**
      * @return string
@@ -39,57 +24,6 @@ class Php2Core
         return preg_replace('/'.substr($pi['dirname'], 1).'.+$/i', substr($pi['dirname'], 1), $_SERVER['SCRIPT_URI']);
     }
 
-    /**
-     * @return void
-     */
-    private static function initializeConfiguration(): void
-    {
-        $appConfigFile = ROOT.'/Assets/Config.ini';
-        $coreConfigFile = __DIR__.'/Assets/Config.ini';
-        if(!file_exists($appConfigFile))
-        {
-            file_put_contents($appConfigFile, file_get_contents(__DIR__.'/Assets/Config.default.ini'));
-        }
-        if(!file_exists($coreConfigFile))
-        {
-            file_put_contents($coreConfigFile, file_get_contents(__DIR__.'/Assets/Config.default.ini'));
-        }
-        
-        require_once('Configuration.php');
-
-        define('CONFIGURATION', new \Php2Core\Configuration(
-            array_merge(parse_ini_file($appConfigFile, true), parse_ini_file($coreConfigFile, true)),
-        ));
-        define('DEBUG', (int)CONFIGURATION -> Get('Configuration/Debug') === 1);
-        define('TITLE', CONFIGURATION -> Get('Configuration/Title'));
-    }
-    
-    /**
-     * @return void
-     */
-    private static function initializeStart(): void
-    {
-        define('TSTART', microtime(true));
-        session_start();
-    }
-    
-    /**
-     * @return void
-     */
-    private static function initializeRoot(): void
-    {
-        define('ROOT', self::root());
-    }
-    
-    /**
-     * @return void
-     */
-    private static function initializeVersion(): void
-    {
-        require_once('Version.php');
-        define('VERSION', new Php2Core\Version('Php2Core', 1,0,0,0, 'https://github.com/Unreal-Technologies/Php2Core'));
-    }
-    
     /**
      * @param string $path
      * @return string
@@ -111,7 +45,7 @@ class Php2Core
     /**
      * @return string
      */
-    private static function root(): string
+    public static function root(): string
     {
         //get Directory
         $pi = pathinfo(__DIR__);
