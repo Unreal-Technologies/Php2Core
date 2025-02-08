@@ -1,7 +1,7 @@
 <?php
 namespace Php2Core\IO\Data;
 
-class BinaryStreamReader
+final class BinaryStreamReader
 {
     /**
      * @var int
@@ -44,6 +44,14 @@ class BinaryStreamReader
     /**
      * @return int
      */
+    public function u64(): int
+    {
+        return unpack('Q', $this -> read(8))[1];
+    }
+    
+    /**
+     * @return int
+     */
     public function u16(): int
     {
         return unpack('H', $this -> read(2))[1];
@@ -55,6 +63,35 @@ class BinaryStreamReader
     public function u32(): int
     {
         return unpack('I', $this -> read(4))[1];
+    }
+    
+    /**
+     * @return bool
+     */
+    public function bool(): bool
+    {
+        return ord($this -> read(1)) > 0;
+    }
+    
+    /**
+     * @return float
+     */
+    public function float(): float
+    {
+        return unpack('f', $this -> read(4))[1];
+    }
+    
+    /**
+     * @return string|null
+     */
+    public function optionalGuid(): ?string
+    {
+        $check = $this -> read(1);
+        if(ord($check) !== 0)
+        {
+            return $this -> guid();
+        }
+        return null;
     }
     
     /**
