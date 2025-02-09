@@ -74,6 +74,23 @@ final class BinaryStreamReader
     }
     
     /**
+     * @param int $length
+     * @return string
+     */
+    public function bytes(int $length): string
+    {
+        return unpack($length.'B', $this -> read($length));
+    }
+    
+    /**
+     * @return float
+     */
+    public function double(): float
+    {
+        return unpack('d', $this -> read(8))[1];
+    }
+    
+    /**
      * @return float
      */
     public function float(): float
