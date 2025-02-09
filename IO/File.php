@@ -13,6 +13,11 @@ class File implements IFile
      * @var bool
      */
     private $bExists;
+    
+    /**
+     * @var mixed
+     */
+    private mixed $oHandler;
 
     /**
      * @param string $sPath
@@ -188,6 +193,54 @@ class File implements IFile
         return file_get_contents($this -> sPath);
     }
 
+    /**
+     * @return bool
+     */
+    public function fClose(): bool
+    {
+        if($this -> oHandler === null)
+        {
+            return false;
+        }
+        return fclose($this -> oHandler);
+    }
+    
+    /**
+     * @param int $length
+     * @return string|null
+     */
+    public function fRead(int $length): ?string
+    {
+        if($this -> oHandler === null)
+        {
+            return null;
+        }
+        
+        $res = fread($this -> oHandler, $length);
+        if($res === false)
+        {
+            return null;
+        }
+        return $res;
+    }
+    
+    /**
+     * @param string $mode
+     * @param bool $useIncludePath
+     * @param type $context
+     * @return bool
+     */
+    public function fOpen(string $mode, bool $useIncludePath = false, $context = null): bool
+    {
+        $fh = fopen($this -> sPath, $mode, $useIncludePath, $context);
+        if($fh !== false)
+        {
+            $this -> oHandler = $fh;
+            return true;
+        }
+        return false;
+    }
+    
     /**
      * @param IDirectory $oDir
      * @param string $sName

@@ -16,4 +16,7 @@ interface IFile extends IDiskManager
     public static function fromFile(IFile $oFile): IFile;
     public function asDtd(): ?Common\IDtdFile;
     public function asXml(): ?Common\IXmlFile;
+    public function fClose(): bool;
+    public function fRead(int $length): ?string;
+    public function fOpen(string $mode, bool $useIncludePath = false, $context = null): bool;
 }

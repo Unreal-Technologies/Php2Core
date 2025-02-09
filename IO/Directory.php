@@ -194,45 +194,40 @@ class Directory implements IDirectory
         }
 
         $aOutput = [];
-        try {
-            //Open direcory
-            if ($this -> open()) {
-                
-                //set output
-                $sOut = null;
-                
-                //Read through
-                while ($this -> read($sOut) !== false) {
-                    
-                    //skip directory fallback
-                    if ($sOut === '.' || $sOut === '..') {
-                        continue;
-                    }
-                    
-                    //if regex is set, match only on regex
-                    if ($sRegex !== null && !preg_match($sRegex, $sOut)) {
-                        continue;
-                    }
+        //Open direcory
+        if ($this -> open()) {
 
-                    //compose output path
-                    $sPath = $this -> sPath . '\\' . $sOut;
+            //set output
+            $sOut = null;
 
-                    //determine what kind of output
-                    if (is_dir($sPath)) {
-                        $aOutput[] = self::fromString($sPath);
-                    } else {
-                        $aOutput[] = File::fromString($sPath);
-                    }
+            //Read through
+            while ($this -> read($sOut) !== false) {
+
+                //skip directory fallback
+                if ($sOut === '.' || $sOut === '..') {
+                    continue;
                 }
-                
-                //Close directory
-                $this -> close();
-            }
-        } 
-        catch (Exception $oEx) {
-            dump($oEx);
-        }
 
+                //if regex is set, match only on regex
+                if ($sRegex !== null && !preg_match($sRegex, $sOut)) {
+                    continue;
+                }
+
+                //compose output path
+                $sPath = $this -> sPath . '\\' . $sOut;
+
+                //determine what kind of output
+                if (is_dir($sPath)) {
+                    $aOutput[] = self::fromString($sPath);
+                } else {
+                    $aOutput[] = File::fromString($sPath);
+                }
+            }
+
+            //Close directory
+            $this -> close();
+        }
+        
         //Set cache
         self::$aRam[$sKey] = $aOutput;
 
