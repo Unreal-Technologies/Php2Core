@@ -26,9 +26,30 @@ class BinaryStreamWriter
      * @param string $value
      * @return void
      */
-    public function u16(string $value): void
+    public function u16(int $value): void
     {
         $this -> write(pack('S', $value), 2);
+    }
+    /**
+     * @return int
+     */
+    public function u64(int $value): void
+    {
+        $this -> write(pack('Q', $value), 8);
+    }
+    
+    /**
+     * @param string|null $guid
+     * @return void
+     */
+    public function optionalGuid(?string $guid): void
+    {
+        $check = $guid === null ? 0 : 1;
+        $this -> write(chr($check), 1);
+        if($check === 1)
+        {
+            $this -> guid($guid);
+        }
     }
     
     /**
@@ -122,6 +143,30 @@ class BinaryStreamWriter
         
         $this -> sData = $left.str_pad($value, $length, chr(0), $padType).$right;
         $this -> iPosition += $length;
+
+        $bt = debug_backtrace();
+        $self = $bt[0]['file'];
+        
+        $function = $bt[0]['function'];
+        for($i=1; $i<count($bt); $i++)
+        {
+            $btc = $bt[$i];
+            $vx = is_array($btc['args'][0]) ? 'array' : $btc['args'][0];
+            
+            if($btc['file'] !== $self)
+            {
+                $function = $btc['function'].'('.$vx.') -> '.$function;
+                break;
+            }
+            else
+            {
+                $function = $btc['function'].'('.$vx.') -> '.$function;
+            }
+        }
+        
+        echo '<xmp>';
+        var_dump($function.': #'.bin2hex($value).' ('.$value.')');
+        echo '</xmp>';
     }
     
     /**

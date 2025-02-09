@@ -1,7 +1,7 @@
 <?php
 namespace Php2Core\IO\Data;
 
-final class BinaryStreamReader
+class BinaryStreamReader
 {
     /**
      * @var int
