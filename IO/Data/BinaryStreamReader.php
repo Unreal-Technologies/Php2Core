@@ -63,7 +63,7 @@ final class BinaryStreamReader
      */
     public function u16(): int
     {
-        return unpack('H', $this -> read(2))[1];
+        return unpack('S', $this -> read(2))[1];
     }
     
     /**
