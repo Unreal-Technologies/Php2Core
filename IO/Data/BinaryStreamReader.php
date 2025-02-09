@@ -24,6 +24,15 @@ final class BinaryStreamReader
     
     /**
      * @param int $length
+     * @return void
+     */
+    public function skip(int $length): void
+    {
+        $this -> iPosition += $length;
+    }
+
+    /**
+     * @param int $length
      * @return string
      */
     public function read(int $length): string
