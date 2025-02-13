@@ -14,6 +14,14 @@ class BinaryStreamWriter
     private string $sData = '';
     
     /**
+     * @return int
+     */
+    public function tell(): int
+    {
+        return $this -> iPosition;
+    }
+    
+    /**
      * @param int $value
      * @return void
      */
@@ -30,12 +38,32 @@ class BinaryStreamWriter
     {
         $this -> write(pack('S', $value), 2);
     }
+    
     /**
-     * @return int
+     * @param int $value
+     * @return void
      */
     public function u64(int $value): void
     {
         $this -> write(pack('Q', $value), 8);
+    }
+    
+    /**
+     * @param bool $value
+     * @return void
+     */
+    public function bool(bool $value): void
+    {
+        $this -> write(chr($value ? 1 : 0), 1);
+    }
+    
+    /**
+     * @param float $value
+     * @return void
+     */
+    public function float(float $value): void
+    {
+        $this -> write(pack('f', $value), 4);
     }
     
     /**
@@ -136,7 +164,7 @@ class BinaryStreamWriter
      * @param int $padType
      * @return void
      */
-    private function write(mixed $value, int $length, int $padType = STR_PAD_LEFT): void
+    protected function write(mixed $value, int $length, int $padType = STR_PAD_LEFT): void
     {
         $left = substr($this -> sData, 0, $this -> iPosition);
         $right = substr($this -> sData, $this -> iPosition);
