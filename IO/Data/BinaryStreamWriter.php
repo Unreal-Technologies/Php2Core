@@ -171,30 +171,6 @@ class BinaryStreamWriter
         
         $this -> sData = $left.str_pad($value, $length, chr(0), $padType).$right;
         $this -> iPosition += $length;
-
-        $bt = debug_backtrace();
-        $self = $bt[0]['file'];
-        
-        $function = $bt[0]['function'];
-        for($i=1; $i<count($bt); $i++)
-        {
-            $btc = $bt[$i];
-            $vx = is_array($btc['args'][0]) ? 'array' : $btc['args'][0];
-            
-            if($btc['file'] !== $self)
-            {
-                $function = $btc['function'].'('.$vx.') -> '.$function;
-                break;
-            }
-            else
-            {
-                $function = $btc['function'].'('.$vx.') -> '.$function;
-            }
-        }
-        
-        echo '<xmp>';
-        var_dump($function.': #'.bin2hex($value).' ('.$value.')');
-        echo '</xmp>';
     }
     
     /**
