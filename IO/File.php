@@ -168,7 +168,7 @@ class File implements IFile
     public function parent(): ?IDirectory
     {
         //Determine parent path
-        $aParts = explode('\\', str_replace('/', '\\', $this -> sPath));
+        $aParts = explode('/', str_replace('\\', '/', $this -> sPath));
         unset($aParts[count($aParts) - 1]);
         
         //Check if not empty
@@ -177,7 +177,7 @@ class File implements IFile
         }
         
         //Compose new path
-        $sNew = implode('\\', $aParts);
+        $sNew = implode('/', $aParts);
         
         //Initialize directory
         return Directory::fromString($sNew);
@@ -250,7 +250,7 @@ class File implements IFile
     public static function fromDirectory(IDirectory $oDir, string $sName): ?IFile
     {
         //Initialize file
-        return self::fromString($oDir -> path() . '\\' . $sName);
+        return self::fromString($oDir -> path() . '/' . $sName);
     }
 
     /**

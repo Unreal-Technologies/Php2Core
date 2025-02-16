@@ -85,7 +85,7 @@ class Directory implements IDirectory
         if (!$oDir -> exists()) {
             return null;
         }
-        return self::fromString($oDir -> path() . '\\' . $sName);
+        return self::fromString($oDir -> path() . '/' . $sName);
     }
 
     /**
@@ -128,14 +128,9 @@ class Directory implements IDirectory
     #[\Override]
     public function name(): string
     {
-        //segment path with \
-        $aSegments = explode('\\', $this -> sPath);
+        //segment path with \ or /
+		$aSegments = preg_split('/[\/|\\\]+/', $this -> sPath);
         
-        //segment path with /
-        if (count($aSegments) === 0) {
-            $aSegments = explode('/', $this -> sPath);
-        }
-
         return $aSegments[count($aSegments) - 1];
     }
 
@@ -214,7 +209,7 @@ class Directory implements IDirectory
                 }
 
                 //compose output path
-                $sPath = $this -> sPath . '\\' . $sOut;
+                $sPath = $this -> sPath . '/' . $sOut;
 
                 //determine what kind of output
                 if (is_dir($sPath)) {
@@ -289,15 +284,19 @@ class Directory implements IDirectory
      */
     private function __construct(string $sDir)
     {
-        if (self::$aRam === null) {
+        if (self::$aRam === null) 
+		{
             self::$aRam = [];
         }
         
         $this -> sPath = $sDir;
-        $this -> bExists = file_exists($sDir);
-        if ($this -> bExists) {
+        $this -> bExists = file_exists($sDir) || is_dir($sDir);
+		
+        if ($this -> bExists) 
+		{
             $this -> sPath = realpath($sDir);
-            if (!is_dir($this -> sPath)) {
+            if (!is_dir($this -> sPath))
+			{
                 throw new \Exception($this -> sPath . ' is not a ' . get_class($this));
             }
         }
