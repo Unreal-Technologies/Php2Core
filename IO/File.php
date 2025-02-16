@@ -308,7 +308,7 @@ class File implements IFile
         $aSegments = explode('\\', $this -> sPath);
         
         //if no segments, seperate on /
-        if (count($aSegments) === 0) {
+        if (count($aSegments) <= 1) {
             $aSegments = explode('/', $this -> sPath);
         }
         

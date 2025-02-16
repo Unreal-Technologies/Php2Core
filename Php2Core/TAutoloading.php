@@ -73,7 +73,7 @@ trait TAutoloading
                 $mapFile = $entry['Path'].'/class.map';
                 if(!file_exists($mapFile) || DEBUG)
                 {
-                    file_put_contents($mapFile, json_encode(self::Map($entry['Path'], $map, true)));
+                    file_put_contents($mapFile, json_encode(self::Map($entry['Path'], $map, false)));
                 }
                 
                 //Import local map
@@ -123,8 +123,9 @@ trait TAutoloading
                         $map['Classes'][$class] = $entry['Path'];
                     }
                 }
-                catch(\Throwable)
+                catch(\Throwable $ex)
                 {
+					$entry['message'] = $ex -> getMessage();
                     $skipped[] = $entry;
                 }
                 continue;
@@ -169,8 +170,10 @@ trait TAutoloading
                         }
                         $remove[] = $idx;
                     } 
-                    catch (\Throwable) 
+                    catch (\Throwable $ex) 
                     { 
+						$entry['message'] = $ex -> getMessage();
+						
                         $map['Skipped'][] = $entry;
                     }
                 }
@@ -188,6 +191,12 @@ trait TAutoloading
         }
         
         $map['Skipped'] = $skipped;
+		
+		if($topMost)
+		{
+			$map['Skipped'] = array_unique($map['Skipped']);
+			$map['Init'] = array_unique($map['Init']);
+		}
         
         return $map;
     }

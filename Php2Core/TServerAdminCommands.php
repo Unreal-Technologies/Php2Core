@@ -60,7 +60,7 @@ trait TServerAdminCommands
      */
     private static function removeClassMap($directory=__DIR__.'/..'): void
     {
-        foreach(self::ScanDir($directory) as $entry) //Loop Through all Entries
+        foreach(self::scanDir($directory) as $entry) //Loop Through all Entries
         {
             $pi = pathinfo($entry['Path']);
             if($entry['Type'] === 'File' && $pi['basename'] === 'class.map')

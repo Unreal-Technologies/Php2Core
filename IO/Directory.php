@@ -69,6 +69,11 @@ class Directory implements IDirectory
         if (!$this -> exists()) {
             return false;
         }
+		
+		foreach($this -> list() as $entry)
+		{
+			$entry -> remove();
+		}
         
         //remove directory
         return rmdir($this -> sPath);
