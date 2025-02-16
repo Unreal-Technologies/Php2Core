@@ -30,6 +30,20 @@ trait TRouting
         return array_values(array_unique($buffer));
     }
     
+	public static function getInstanceID(): int
+	{
+		$coreDbc = \Php2Core\Db\Database::getInstance('Php2Core');
+		$coreDbc -> query('select `id` from `instance` where `name` = "'.CONFIGURATION -> get('Configuration/Title').'"');
+		$result = $coreDbc -> execute();
+		
+		if($result['iRowCount'] > 0)
+		{
+			return $result['aResults'][0]['id'];
+		}
+
+		return -1;
+	}
+	
     /**
      * @return void
      * @throws \Exception
@@ -38,7 +52,7 @@ trait TRouting
     {
         //Get DB Instance
         $coreDbc = \Php2Core\Db\Database::getInstance('Php2Core');
-        $instanceId = 1;
+        $instanceId = self::getInstanceID();
 
         //Get Default handler
         $coreDbc -> query(
@@ -77,7 +91,7 @@ trait TRouting
         }
         
         //get current route (if matched)
-        define('ROUTE', $router -> Match());
+        define('ROUTE', $router -> match());
         
         //throw exception when not actually matched
         if(ROUTE === null)
