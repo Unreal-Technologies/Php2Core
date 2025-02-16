@@ -23,7 +23,14 @@ class Php2Core
         $pi = pathinfo($_SERVER['SCRIPT_NAME']);
 		if(!isset($_SERVER['SCRIPT_URI']))
 		{
-			return $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].$pi['dirname'];
+			$result = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].$pi['dirname'];
+			
+			if(substr($result, -1, 1) === '/')
+			{
+				return substr($result, 0, -1);
+			}
+			
+			return $result;
 		}
 
         return preg_replace('/'.substr($pi['dirname'], 1).'.+$/i', substr($pi['dirname'], 1), $_SERVER['SCRIPT_URI']);
