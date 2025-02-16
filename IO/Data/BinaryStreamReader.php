@@ -1,7 +1,7 @@
 <?php
 namespace Php2Core\IO\Data;
 
-final class BinaryStreamReader
+class BinaryStreamReader
 {
     /**
      * @var int
@@ -63,7 +63,7 @@ final class BinaryStreamReader
      */
     public function u16(): int
     {
-        return unpack('H', $this -> read(2))[1];
+        return unpack('S', $this -> read(2))[1];
     }
     
     /**
