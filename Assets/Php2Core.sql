@@ -24,5 +24,6 @@ create table `route`
 
 insert into `route`(`default`, `method`, `match`, `target`, `type`)
 values
+('false', 'get', 'index', 'index.php', 'file'),
 ('false', 'get', 'admin-rdb', 'Php2Core::ResetDatabases', 'function'),
 ('false', 'get', 'admin-cm', 'Php2Core::ClassMap', 'function');

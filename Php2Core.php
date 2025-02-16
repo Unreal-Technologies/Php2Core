@@ -21,6 +21,11 @@ class Php2Core
     public static function baseUrl(): string
     {
         $pi = pathinfo($_SERVER['SCRIPT_NAME']);
+		if(!isset($_SERVER['SCRIPT_URI']))
+		{
+			return $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].$pi['dirname'];
+		}
+
         return preg_replace('/'.substr($pi['dirname'], 1).'.+$/i', substr($pi['dirname'], 1), $_SERVER['SCRIPT_URI']);
     }
 
@@ -32,14 +37,13 @@ class Php2Core
     {
         $basePath = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].pathinfo($_SERVER['SCRIPT_NAME'])['dirname'];
 
-        $new = str_replace([ROOT.'\\', '\\', '//', ':/'], ['', '/', '/', '://'], $path);
+        $new = str_replace([ROOT.'\\', ROOT.'/', '\\', '//', ':/'], ['', '', '/', '/', '://'], $path);
         if($new !== $path)
         {
             return $basePath.'/'.$new;
         }
-        
-        var_dump($path);
-        throw new Php2Core\Exceptions\NotImplementedException();
+
+        throw new Php2Core\Exceptions\NotImplementedException($path);
     }
     
     /**
