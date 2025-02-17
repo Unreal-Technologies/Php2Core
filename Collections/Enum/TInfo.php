@@ -4,6 +4,24 @@ namespace Php2Core\Collections\Enum;
 
 trait TInfo
 {
+	/**
+	 * @param string $name
+	 * @return mixed
+	 */
+	public static function fromString(string $name): mixed
+	{
+		$class = get_class();
+		
+		foreach ($class::cases() as $status)
+	 	{
+            if($name === $status -> name)
+			{
+                return $status;
+            }
+        }
+		return null;
+	}
+	
     public static function names(): array
     {
         return array_column(self::cases(), 'name');

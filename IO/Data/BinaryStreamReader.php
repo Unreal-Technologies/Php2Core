@@ -42,6 +42,19 @@ class BinaryStreamReader
         return $data;
     }
     
+	public function i64(): int
+	{
+		return unpack('q', $this -> read(8))[1];
+	}
+	
+	/**
+	 * @return string
+	 */
+	public function byte(): string
+	{
+		return unpack('C', $this -> read(1))[1];
+	}
+	
     /**
      * @return int
      */
@@ -88,7 +101,7 @@ class BinaryStreamReader
      */
     public function bytes(int $length): string
     {
-        return unpack($length.'B', $this -> read($length));
+		return unpack('C', $this -> read($length))[1];
     }
     
     /**
@@ -163,7 +176,7 @@ class BinaryStreamReader
         {
             $length = -$length;
             $data = substr($this -> read($length * 2), 0, -2);
-            $encoding = 'utf-16-le';
+            $encoding = 'UTF-16LE';
         }
         else
         {
