@@ -30,6 +30,15 @@ class BinaryStreamReader
     {
         $this -> iPosition += $length;
     }
+    
+    /**
+     * @param int $position
+     * @return void
+     */
+    public function seek(int $position): void
+    {
+        $this -> iPosition = $position;
+    }
 
     /**
      * @param int $length
