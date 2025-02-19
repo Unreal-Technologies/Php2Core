@@ -17,6 +17,24 @@ trait THandlers
         }
     }
     
+    private static function getTrace(\Php2Core\NoHTML\Xhtml $body): ?\Php2Core\NoHTML\Xhtml
+    {
+        $trace = null;
+        $body -> get('table@#trace', function(\Php2Core\NoHTML\Xhtml $table) use(&$trace)
+        {
+            $trace = $table;
+        });
+        if($trace === null)
+        {
+            \Php2Core::trace();
+            $body -> get('table@#trace', function(\Php2Core\NoHTML\Xhtml $table) use(&$trace)
+            {
+                $trace = $table;
+            });
+        }
+        return $trace;
+    }
+    
     /**
      * @param int $errno
      * @param string $errstr
@@ -30,10 +48,16 @@ trait THandlers
         
         XHTML -> get('body', function(\Php2Core\NoHTML\Xhtml $body) use(&$hasBody, $errno, $errstr, $errfile, $errline)
         {
+            $trace = self::getTrace($body);
+            
             $body -> clear();
             $body -> add('h2') -> text('Php2Core::ErrorHandler');
             $body -> add('xmp') -> text(print_r($errfile.':'.$errline, true));
             $body -> add('xmp') -> text($errno."\r\n".print_r($errstr, true));
+            if($trace !== null)
+            {
+                $body -> append($trace);
+            }
 
             $hasBody = true; 
         });

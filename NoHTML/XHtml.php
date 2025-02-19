@@ -233,7 +233,11 @@ class Xhtml implements IXhtml
                             
                             if($isId)
                             {
-                                throw new \Php2Core\Exceptions\NotImplementedException($extra);
+                                $cls = $attributes -> get('id');
+                                if($cls === substr($extra, 1))
+                                {
+                                    $stateExtraOK = true;
+                                }
                             }
                             
                             if($isOther)

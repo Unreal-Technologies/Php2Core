@@ -16,22 +16,86 @@ class Php2Core
     use Php2Core\Php2Core\TOtherInitializers;
 
     /**
+     * @return void
+     */
+    public static function trace(): void
+    {
+        $path = [];
+        $components = debug_backtrace();
+        
+        for($i=1; $i<count($components); $i++)
+        {
+            $entry = $components[$i];
+            
+            $args = [];
+            foreach($entry['args'] as $arg)
+            {
+                if(is_object($arg))
+                {
+                    $args[] = get_class($arg);
+                    continue;
+                }
+                else if(is_string($arg) && !is_numeric($arg))
+                {
+                    $args[] = '"'.$arg.'"';
+                    continue;
+                }
+                else if(is_array($arg))
+                {
+                    $args[] = 'array';
+                    continue;
+                }
+                $args[] = $arg;
+            }
+            
+            if(isset($entry['class']))
+            {
+                if(!isset($entry['file']))
+                {
+                    $path = [];
+                    continue;
+                }
+                $path[] = [$entry['file'].':'.$entry['line'], $entry['class'].' '.$entry['type'].' '.$entry['function'].'('.implode(', ', $args).')'];
+                continue;
+            }
+            $path[] = [$entry['file'].':'.$entry['line'], $entry['function'].'('.implode(', ', $args).')'];
+        }
+        $pathReversed = array_reverse($path);
+        
+        XHTML -> get('body', function(Php2Core\NoHTML\Xhtml $body) use($pathReversed)
+        {
+            $table = $body -> add('table@#trace');
+            $table -> add('tr/th@colspan=3') -> text('Trace');
+            
+            foreach($pathReversed as $idx => $data)
+            {
+                list($line, $call) = $data;
+                
+                $tr = $table -> add('tr');
+                $tr -> add('td') -> text($idx + 1);
+                $tr -> add('td') -> text($line === null ? '' : $line);
+                $tr -> add('td') -> text($call);
+            }
+        });
+    }
+    
+    /**
      * @return string
      */
     public static function baseUrl(): string
     {
         $pi = pathinfo($_SERVER['SCRIPT_NAME']);
-		if(!isset($_SERVER['SCRIPT_URI']))
-		{
-			$result = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].$pi['dirname'];
-			
-			if(substr($result, -1, 1) === '/')
-			{
-				return substr($result, 0, -1);
-			}
-			
-			return $result;
-		}
+        if(!isset($_SERVER['SCRIPT_URI']))
+        {
+            $result = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].$pi['dirname'];
+
+            if(substr($result, -1, 1) === '/')
+            {
+                    return substr($result, 0, -1);
+            }
+
+            return $result;
+        }
 
         return preg_replace('/'.substr($pi['dirname'], 1).'.+$/i', substr($pi['dirname'], 1), $_SERVER['SCRIPT_URI']);
     }
