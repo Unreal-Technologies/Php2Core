@@ -31,15 +31,18 @@ class Form
      * @param Form\InputTypes $type
      * @param Columns $size
      * @param Columns|null $offset
-     * @return void
+     * @return \Php2Core\NoHTML\Xhtml
      */
-    public function field(string $id, string $text, Form\InputTypes $type, Columns $size = Columns::S12, ?Columns $offset = null): void
+    public function field(string $id, string $text, Form\InputTypes $type, Columns $size = Columns::S12, ?Columns $offset = null): \Php2Core\NoHTML\Xhtml
     {
-        $this -> oForm -> add('div@.input-field col '.$size -> value.($offset === null ? '' : '  offset-'.$offset -> value), function(\Php2Core\NoHTML\Xhtml $field) use($text, $id, $type)
+        $input = null;
+        $this -> oForm -> add('div@.input-field col '.$size -> value.($offset === null ? '' : '  offset-'.$offset -> value), function(\Php2Core\NoHTML\Xhtml $field) use($text, $id, $type, &$input)
         {
-            $field -> add('input@placeholder='.$text.'&name='.$id.'&type='.$type -> value.'&.validate&#'.$id);
+            $input = $field -> add('input@placeholder='.$text.'&name='.$id.'&type='.$type -> value.'&.validate&#'.$id);
             $field -> add('label@for='.$id) -> text($text);
         });
+        
+        return $input;
     }
     
     /**

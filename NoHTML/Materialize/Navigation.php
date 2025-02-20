@@ -100,7 +100,7 @@ class Navigation extends Submenu
                 $script -> attributes() -> set('type', 'text/javascript');
                 $script -> text('$(document).ready(function() 
 {
-$(".dropdown-trigger").dropdown();
+$(".dropdown-trigger").dropdown({ constrainWidth: false });
 });');
             });
         }
