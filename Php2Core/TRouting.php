@@ -30,19 +30,22 @@ trait TRouting
         return array_values(array_unique($buffer));
     }
     
-	public static function getInstanceID(): int
-	{
-		$coreDbc = \Php2Core\Db\Database::getInstance('Php2Core');
-		$coreDbc -> query('select `id` from `instance` where `name` = "'.CONFIGURATION -> get('Configuration/Title').'"');
-		$result = $coreDbc -> execute();
-		
-		if($result['iRowCount'] > 0)
-		{
-			return $result['aResults'][0]['id'];
-		}
+    /**
+     * @return int
+     */
+    public static function getInstanceID(): int
+    {
+        $coreDbc = \Php2Core\Db\Database::getInstance('Php2Core');
+        $coreDbc -> query('select `id` from `instance` where `name` = "'.CONFIGURATION -> get('Configuration/Title').'"');
+        $result = $coreDbc -> execute();
 
-		return -1;
-	}
+        if($result['iRowCount'] > 0)
+        {
+            return $result['aResults'][0]['id'];
+        }
+
+        return -1;
+    }
 	
     /**
      * @return void
@@ -53,16 +56,18 @@ trait TRouting
         //Get DB Instance
         $coreDbc = \Php2Core\Db\Database::getInstance('Php2Core');
         $instanceId = self::getInstanceID();
-
+        $authenticated = self::isAuthenticated();
+        
         //Get Default handler
         $coreDbc -> query(
-                'select '
-                . 'case when `match` is null then \'index\' else `match` end as `match` '
-                . 'from `route` '
-                . 'where `default` = "true" '
-                . 'and '.(SERVER_ADMIN ? '( `instance-id` = '.$instanceId.' or `instance-id` is null )' : '`instance-id` = '.$instanceId).' '
-                . 'order by `id` asc '
-                . 'limit 0,1'
+            'select '
+            . 'case when `match` is null then \'index\' else `match` end as `match` '
+            . 'from `route` '
+            . 'where `default` = "true" '
+            . 'and '.(SERVER_ADMIN ? '( `instance-id` = '.$instanceId.' or `instance-id` is null )' : '`instance-id` = '.$instanceId).' '
+            . ($authenticated ? '' : 'and `auth` = "false" ')
+            . 'order by `id` asc '
+            . 'limit 0,1'
         );
         
         $defaultResults = $coreDbc -> execute();
@@ -75,12 +80,13 @@ trait TRouting
         
         //Get Possible routes
         $coreDbc -> query(
-                'select '
-                . '`method`, `match`, `target`, `type` '
-                . 'from `route` '
-                . 'where '.(SERVER_ADMIN ? '( `instance-id` = '.$instanceId.' or `instance-id` is null )' : '`instance-id` = '.$instanceId).' '
-                . 'and (`match` regexp \''.implode('\' or `match` regexp \'', $possibilities).'\')'
-                . (SERVER_ADMIN ? '' : 'and `type` != \'function\' ')
+            'select '
+            . '`method`, `match`, `target`, `type`, `auth` '
+            . 'from `route` '
+            . 'where '.(SERVER_ADMIN ? '( `instance-id` = '.$instanceId.' or `instance-id` is null )' : '`instance-id` = '.$instanceId).' '
+            . 'and (`match` regexp \''.implode('\' or `match` regexp \'', $possibilities).'\') '
+            . ($authenticated ? '' : 'and `auth` = "false" ')
+            . (SERVER_ADMIN ? '' : 'and `type` != \'function\' ')
         );
         
         //Register possible routes

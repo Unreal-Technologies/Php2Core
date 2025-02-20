@@ -23,6 +23,7 @@
 #version ul
 {
     padding-inline-start: 20px;
+    white-space: nowrap;
 }
 
 #version ul:first-child
