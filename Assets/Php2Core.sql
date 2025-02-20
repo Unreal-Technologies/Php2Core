@@ -45,6 +45,7 @@ create table `route`
     `match` varchar(128) not null,
     `type` enum('file', 'function') not null default('file'),
     `target` varchar(128) not null,
+    `auth` enum('true', 'false') not null,
     primary key(`id`),
     foreign key(`instance-id`) references `instance`(`id`) on delete cascade
 )Engine=InnoDB;
@@ -69,20 +70,18 @@ create table `user-instance`
 
 insert into `user`(`username`, `password`)
 values
-('admin', user_password('admin')),
-('admin', user_password('logitech'));
+('admin', user_password('admin'));
 
 set @adminId = last_insert_id();
 
 insert into `user-instance`(`user-id`,`instance-id`)
 values(@adminId, null);
 
-insert into `route`(`default`, `method`, `match`, `target`, `type`)
+insert into `route`(`default`, `method`, `match`, `target`, `type`, `auth`)
 values
-('false', 'get', 'index', 'index.php', 'file'),
-('false', 'get', 'admin-rdb', 'Php2Core::ResetDatabases', 'function'),
-('false', 'get', 'admin-cm', 'Php2Core::ClassMap', 'function'),
-('false', 'get', 'login', 'login.php', 'file'),
-('false', 'post', 'login', 'login.php', 'file'),
-('false', 'get', 'logout', 'logout.php', 'file'),
-('false', 'post', 'logout', 'logout.php', 'file');
+('false', 'get', 'index', 'index.php', 'file', 'false'),
+('false', 'get', 'admin-rdb', 'Php2Core::ResetDatabases', 'function', 'true'),
+('false', 'get', 'admin-cm', 'Php2Core::ClassMap', 'function', 'true'),
+('false', 'get', 'login', 'login.php', 'file', 'false'),
+('false', 'post', 'login', 'login.php', 'file', 'false'),
+('false', 'get', 'logout', 'logout.php', 'file', 'true');

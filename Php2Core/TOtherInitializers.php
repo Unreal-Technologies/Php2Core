@@ -16,8 +16,8 @@ trait TOtherInitializers
         self::initializeHandlerOverride();
         self::initializeDatabase();
         self::initializeServerAdminCommands();
-        self::initializeRouting();
         self::initializeSession();
+        self::initializeRouting();
         self::executeServerAdminCommands();
     }
     

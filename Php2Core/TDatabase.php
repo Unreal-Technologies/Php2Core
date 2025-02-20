@@ -46,8 +46,7 @@ trait TDatabase
                 
                 if($structureFile !== false)
                 {
-                    $result = $instance -> structure(file_get_contents($structureFile), \Php2Core\Db\Cache::CACHE_MEMORY, true);
-                    $instance -> execute(\Php2Core\Db\Cache::CACHE_MEMORY, true);
+                    $instance -> structure(file_get_contents($structureFile), \Php2Core\Db\Cache::CACHE_MEMORY, true);
                 }
                 
                 if($contentFile !== false)

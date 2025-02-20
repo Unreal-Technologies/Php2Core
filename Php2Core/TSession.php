@@ -7,13 +7,45 @@ trait TSession
     {
     }
     
+    /**
+     * @param string $path
+     * @return mixed
+     */
+    public static function session_get(string $path): mixed
+    {
+        $eval = '$_SESSION';
+        foreach(explode('/', $path) as $token)
+        {
+            $eval .= '["'.$token.'"]';
+        }
+        $data = null;
+        eval('$data = isset('.$eval.') ? '.$eval.' : null;');
+        
+        return $data;
+    }
+    
+    /**
+     * @param string $path
+     * @param mixed $data
+     * @return void
+     */
+    public static function session_set(string $path, mixed $data): void
+    {
+        $eval = '$_SESSION';
+        foreach(explode('/', $path) as $token)
+        {
+            $eval .= '["'.$token.'"]';
+        }
+        $eval .= ' = $data;';
+        
+        eval($eval);
+    }
+    
+    /**
+     * @return bool
+     */
     public static function isAuthenticated(): bool
     {
-        echo '<xmp>';
-        var_dump(__FILE__.':'.__LINE__);
-        var_dump('NOT IMPLEMENTED ISAUTHENTICATED');
-//        print_r($_SESSION);
-        echo '</xmp>';
-        return false;
+        return self::session_get('user/id') !== null;
     }
 }
