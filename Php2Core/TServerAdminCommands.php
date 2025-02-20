@@ -25,8 +25,6 @@ trait TServerAdminCommands
         
         $coreDbc -> query('drop database `'.$coreDbc -> database().'`;');
         $coreDbc -> execute();
-        
-        self::initializeDatabase();
 
         header('Location: '.self::baseUrl());
         exit;

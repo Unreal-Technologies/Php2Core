@@ -19,6 +19,60 @@ class Database extends \Php2Core\Data
      */
     private array $aBindings = [];
     
+    /**
+     * @param string $baseSql
+     * @param string $sCache
+     * @param bool $noDb
+     * @return array
+     */
+    public function structure(string $baseSql,string $sCache = Cache::CACHE_MEMORY, bool $noDb = false): array
+    {
+        $delimiter = ';';
+        $delimiters = [];
+        $queryBuffer = [];
+        $pos = 0;
+        
+        preg_match_all('/^delimiter.+$/msiU', $baseSql, $delimiters);
+        
+        foreach($delimiters[0] as $delim)
+        {
+            $sql = substr($baseSql, $pos, strpos($baseSql, $delim, $pos) - $pos);
+            $pos += strlen($sql) + strlen($delim);
+            
+            $trimmed = trim($sql);
+
+            if($delimiter !== ';')
+            {
+                foreach(explode($delimiter, $trimmed) as $sql)
+                {
+                    $queryBuffer[] = trim($sql);
+                }
+            }
+            else
+            {
+                $queryBuffer[] = trim($sql);
+            }
+            
+            $delimiter = trim(substr($delim, 9));
+        }
+        $queryBuffer[] = trim(substr($baseSql, $pos));
+        
+        $results = [];
+        foreach($queryBuffer as $sql)
+        {
+            if(strlen($sql) === 0)
+            {
+                continue;
+            }
+            
+            $this -> query($sql);
+            $results[] = $this -> execute($sCache, $noDb);
+            $noDb = false;
+        }
+
+        return $results;
+    }
+    
     /** 
      * @param string $sInstanceID
      * @param string $sHost
