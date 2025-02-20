@@ -17,6 +17,7 @@ trait TOtherInitializers
         self::initializeDatabase();
         self::initializeServerAdminCommands();
         self::initializeRouting();
+        self::initializeSession();
         self::executeServerAdminCommands();
     }
     

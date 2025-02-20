@@ -5,6 +5,7 @@ require_once('Php2Core/TRouting.php');
 require_once('Php2Core/TAutoloading.php');
 require_once('Php2Core/THandlers.php');
 require_once('Php2Core/TOtherInitializers.php');
+require_once('Php2Core/TSession.php');
 
 class Php2Core
 {
@@ -13,8 +14,18 @@ class Php2Core
     use \Php2Core\Php2Core\TRouting;
     use \Php2Core\Php2Core\TAutoloading;
     use \Php2Core\Php2Core\THandlers;
-    use Php2Core\Php2Core\TOtherInitializers;
+    use \Php2Core\Php2Core\TOtherInitializers;
+    use \Php2Core\Php2Core\TSession;
 
+    /**
+     * @param string $url
+     * @return void
+     */
+    public static function refresh(string $url): void
+    {
+        header('Location: '.$url);
+    }
+    
     /**
      * @return void
      */

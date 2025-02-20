@@ -39,6 +39,18 @@ class Route
     /**
      * @return array
      */
+    public function route(): array
+    {
+        $parts = explode(':', $this -> sMatch);
+        return [
+            'method' => $parts[0],
+            'slug' => $parts[1]
+        ];
+    }
+    
+    /**
+     * @return array
+     */
     public function target(): array
     {
         $parts = explode('#', $this -> sTarget);

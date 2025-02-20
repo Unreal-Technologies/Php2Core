@@ -26,4 +26,8 @@ insert into `route`(`default`, `method`, `match`, `target`, `type`)
 values
 ('false', 'get', 'index', 'index.php', 'file'),
 ('false', 'get', 'admin-rdb', 'Php2Core::ResetDatabases', 'function'),
-('false', 'get', 'admin-cm', 'Php2Core::ClassMap', 'function');
+('false', 'get', 'admin-cm', 'Php2Core::ClassMap', 'function'),
+('false', 'get', 'login', 'login.php', 'file'),
+('false', 'post', 'login', 'login.php', 'file'),
+('false', 'get', 'logout', 'logout.php', 'file'),
+('false', 'post', 'logout', 'logout.php', 'file');
