@@ -11,19 +11,34 @@ class Process
     {
         $buffer = [];
         $lines = [];
+        
+        $isWindows = true;
         exec('tasklist 2>nul', $lines);
-
-        for ($i = 3; $i < count($lines); $i++) {
-            $wdp = new \Php2Core\Collections\Generic\WindowsDataParser($lines[1], $lines[$i], $lines[2]);
-
+        if(count($lines) === 0)
+        {
+            exec('ps -A -f', $lines);
+            $isWindows = false;
+        }
+        $start = $isWindows ? 3 : 1;
+        
+        for ($i = $start; $i < count($lines); $i++) {
+            if($isWindows)
+            {
+                $data = new \Php2Core\Collections\Generic\WindowsDataParser($lines[1], $lines[$i], $lines[2]);
+            }
+            else
+            {
+                $data = new \Php2Core\Collections\Generic\LinuxDataParser($lines[0], $lines[$i]);
+            }
+            
             $buffer[] = [
                 'Session' => [
-                    'Id' => (int)$wdp -> get('Session#'),
-                    'Name' => $wdp -> get('Session Name')
+                    'Id' => (int)$data -> get('Session#'),
+                    'Name' => $isWindows ? $data -> get('Session Name') : $data -> get('UID')
                 ],
-                'Process' => $wdp -> get('Image Name'),
-                'PID' => (int)$wdp -> get('PID'),
-                'Memory' => Memory::parse($wdp -> get('Mem Usage'))
+                'Process' => $isWindows ? $data -> get('Image Name') : $data -> get('CMD'),
+                'PID' => (int)$data -> get('PID'),
+                'Memory' => $isWindows ? Memory::parse($data -> get('Mem Usage')) : 0
             ];
         }
         $mergedByProcess = self::mergeByProcess($buffer);
@@ -136,7 +151,7 @@ class Process
      * @param int $pid
      * @return \Php2Core\Collections\Dictionary
      */
-    public function pidInfo(int $pid): \Php2Core\Collections\Dictionary
+    public function pidInfo(int $pid): ?\Php2Core\Collections\Dictionary
     {
         $exists = (new \Php2Core\Collections\Linq($this -> processes))
             -> firstOrDefault(function ($x) use ($pid) {

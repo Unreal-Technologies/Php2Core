@@ -104,5 +104,10 @@ trait TRouting
         {
             throw new \Exception('Route not found');
         }
+        else if(ROUTE -> target()['type'] === 'function')
+        {
+            eval(ROUTE -> target()['target'].'();');
+            exit;
+        }
     }
 }

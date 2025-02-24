@@ -191,12 +191,12 @@ trait TAutoloading
         }
         
         $map['Skipped'] = $skipped;
-		
-		if($topMost)
-		{
-			$map['Skipped'] = array_unique($map['Skipped']);
-			$map['Init'] = array_unique($map['Init']);
-		}
+
+        if($topMost)
+        {
+            $map['Skipped'] = array_unique($map['Skipped']);
+            $map['Init'] = array_unique($map['Init']);
+        }
         
         return $map;
     }
