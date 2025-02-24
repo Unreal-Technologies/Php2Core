@@ -8,7 +8,9 @@ trait THandlers
      */
     private static function initializeHandlerOverride(): void
     {
-        if((int)CONFIGURATION -> get('Logic/ErrorHandling') === 1)
+        $isXhr = isset($_GET['mode']) && $_GET['mode'] === 'xhr';
+        
+        if((int)CONFIGURATION -> get('Logic/ErrorHandling') === 1 && !$isXhr)
         {
             //register handlers
             set_error_handler('Php2Core::ErrorHandler');
