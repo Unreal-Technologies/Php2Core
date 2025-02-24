@@ -69,6 +69,6 @@ trait TOtherInitializers
     private static function initializeVersion(): void
     {
         require_once(__DIR__.'/../Version.php');
-        define('VERSION', new \Php2Core\Version('Php2Core', 1,0,0,0, 'https://github.com/Unreal-Technologies/Php2Core'));
+        define('VERSION', new \Php2Core\Version('Php2Core', 1,0,0,1, 'https://github.com/Unreal-Technologies/Php2Core'));
     }
 }
