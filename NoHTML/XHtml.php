@@ -81,6 +81,25 @@ class Xhtml implements IXhtml
     }
     
     /**
+     * @return Xhtml|null
+     */
+    public function parent(): ?Xhtml
+    {
+        $parts = explode('/', $this -> sPath);
+        unset($parts[count($parts) - 1]);
+        unset($parts[0]);
+        $parentPath = implode('/', $parts);
+        
+        $parent = null;
+        XHTML -> get($parentPath, function(Xhtml $object) use(&$parent)
+        {
+            $parent = $object;
+        });
+        
+        return $parent;
+    }
+    
+    /**
      * @param string $tag
      * @param \Closure $callback
      * @return Xhtml
