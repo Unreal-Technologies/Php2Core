@@ -34,11 +34,17 @@ class Xhtml implements IXhtml
     private array $aChildren = [];
     
     /**
+     * @var string|null
+     */
+    private ?string $prefix = null;
+    
+    /**
      * @throws \Exception
      */
     #[\Override]
-    public function __construct()
+    public function __construct(string $prefix = null)
     {
+        $this -> prefix = $prefix;
         $this -> oAttributes = new Attributes();
         if(!defined('XHTML'))
         {
@@ -54,7 +60,8 @@ class Xhtml implements IXhtml
     {
         $tab = str_repeat('  ', $this -> iPosition);
         
-        $out = $tab.'<'.$this -> sTag.$this -> oAttributes.'>'."\r\n";
+        $out = $this -> prefix;
+        $out .= $tab.'<'.$this -> sTag.$this -> oAttributes.'>'."\r\n";
         foreach($this -> aChildren as $child)
         {
             if($child instanceof XHtml)

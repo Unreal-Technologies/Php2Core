@@ -7,4 +7,5 @@ enum InputTypes: string
     
     case Text = 'text';
     case Password = 'password';
+    case YesNo = 'yes-no';
 }
