@@ -165,11 +165,6 @@ trait THandlers
                 $script -> Attributes() -> Set('type', 'text/javascript');
                 $script -> Attributes() -> Set('src', self::PhysicalToRelativePath(__DIR__.'/../Assets/Xhr.js'));
             });
-            $head -> add('script', function(\Php2Core\NoHTML\Xhtml $script)
-            {
-                $script -> Attributes() -> Set('type', 'text/javascript');
-                $script -> Attributes() -> Set('src', self::PhysicalToRelativePath(__DIR__.'/../Assets/Form.js'));
-            });
 
             foreach($children as $child)
             {

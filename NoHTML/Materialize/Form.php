@@ -129,14 +129,6 @@ class Form
                 }
                 $input -> add('option@value='.$item['value'].($item['selected'] ? '&selected=selected' : null)) -> text($item['text']);
             }
-            
-            $attributes = $input -> attributes();
-            $clsPrefix = '';
-            if(!$hasSelected && $required)
-            {
-                $clsPrefix = 'in';
-            }
-            $attributes -> set('class', $attributes -> get('class').' '.$clsPrefix.'valid');
 
             $field -> add('label@for='.$id) -> text($text.' <span class="required">'.($required ? '*' : '&nbsp;').'</span>');
             $field -> add('span@.helper-text&for='.$id);
@@ -173,14 +165,6 @@ class Form
             $input -> attributes() -> set('value', $value);
             $field -> add('label@for='.$id.'&.active') -> text($text.' <span class="required">'.($required ? '*' : '&nbsp;').'</span>');
             $field -> add('span@.helper-text&for='.$id);
-            
-            $attributes = $input -> attributes();
-            $clsPrefix = '';
-            if(($value === null || $value == '') && $required)
-            {
-                $clsPrefix = 'in';
-            }
-            $attributes -> set('class', $attributes -> get('class').' '.$clsPrefix.'valid');
         });
 
         $attributes = $input -> attributes();

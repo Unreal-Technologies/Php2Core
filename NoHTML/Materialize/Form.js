@@ -53,30 +53,5 @@ var Form =
     
     initialize: function(form)
     {
-        let elements = $('#'+form.id+' select');
-        
-        for(let i=0; i<elements.length; i++)
-        {
-            let element = elements[i];
-            let classes = Array.from(element.classList);
-            
-            let parent = element.parentElement;
-                
-            for(let c=0; c<parent.children.length; c++)
-            {
-                let child = parent.children[c];
-                if(child.tagName === 'INPUT')
-                {
-                    child.classList.remove('valid');
-                    child.classList.remove('invalid');
-                    element = child;
-                };
-            }
-            
-            for(let c=0; c<classes.length; c++)
-            {
-                element.classList.add(classes[c]);
-            }
-        }
     }
 };
