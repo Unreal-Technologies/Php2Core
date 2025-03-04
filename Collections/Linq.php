@@ -206,10 +206,11 @@ class Linq implements ILinq
         if (is_array($buffer)) {
             $buffer = new Dictionary();
         }
-
+        
         if (!$buffer -> add($key, $item, true)) {
-            $prevItem = $buffer -> get($key)[0];
-            $list = [$prevItem, $item];
+            $list = $buffer -> get($key);
+            $list[] = $item;
+            
             $buffer -> remove($key);
             $buffer -> add($key, $list);
         }
@@ -344,17 +345,22 @@ class Linq implements ILinq
             }
 
             $buffer = [];
-            foreach ($collection as $i => $item) {
+            foreach ($collection as $i => $item) 
+            {
                 $this -> executeSwitch($type, $i, $buffer, $lambda, $item, $collection);
             }
 
-            if ($type === $this::ORDERBY) {
+            if ($type === $this::ORDERBY) 
+            {
                 $direction = $query[2];
-                if ($direction == SortDirections::Asc) {
+                if ($direction == SortDirections::Asc) 
+                {
                     ksort($buffer);
-                } else {
+                } else 
+                {
                     krsort($buffer);
                 }
+
                 $buffer = $this -> multiToSingleArray($buffer);
             }
 

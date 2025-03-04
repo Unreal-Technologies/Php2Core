@@ -47,6 +47,14 @@ class Form
     }
     
     /**
+     * @return \Php2Core\NoHTML\Xhtml
+     */
+    public function reference(): \Php2Core\NoHTML\Xhtml
+    {
+        return $this -> oForm;
+    }
+    
+    /**
      * @param string $id
      * @param string $text
      * @param Form\InputTypes $type
