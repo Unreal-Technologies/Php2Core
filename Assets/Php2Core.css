@@ -61,3 +61,11 @@
 {
     background-color: unset !important;
 }
+
+.required
+{
+    color: #aa0000;
+    font-size: 14pt;
+/*    font-family: monospace;
+    font-weight: bold;*/
+}
