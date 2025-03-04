@@ -27,7 +27,7 @@ class Form
         
         
         $reference = null;
-        $container -> add('div@.row/form@#'.$id.'&.col '.$size -> value.($offset === null ? '' : '  offset-'.$offset -> value).'&method='.$method -> value.'/div@.container/div@.row', function(\Php2Core\NoHTML\Xhtml $form) use(&$reference)
+        $container -> add('div@.row/form@#'.$id.'&.col '.$size -> value.($offset === null ? '' : '  offset-'.$offset -> value).'&method='.$method -> value.'&onsubmit=return Form.Validate(this);/div@.container/div@.row', function(\Php2Core\NoHTML\Xhtml $form) use(&$reference)
         {
             $reference = $form;
         });
@@ -42,6 +42,8 @@ class Form
         }) -> text('$(document).ready(function()'
             . '{'
                 . '$(\'select\').formSelect();'
+                . 'M.updateTextFields();'
+                . 'Form.initialize(document.getElementById(\''.$id.'\'));'
             . '});'
         );
     }
@@ -117,11 +119,27 @@ class Form
         {
             $input = $field -> add('select@name='.$id.'&.validate&#'.$id);
             $input -> add('option@disabled=disabled@selected=selected') -> text('Choose your option');
+            
+            $hasSelected = false;
             foreach($list as $item)
             {
+                if($item['selected'])
+                {
+                    $hasSelected = true;
+                }
                 $input -> add('option@value='.$item['value'].($item['selected'] ? '&selected=selected' : null)) -> text($item['text']);
             }
+            
+            $attributes = $input -> attributes();
+            $clsPrefix = '';
+            if(!$hasSelected && $required)
+            {
+                $clsPrefix = 'in';
+            }
+            $attributes -> set('class', $attributes -> get('class').' '.$clsPrefix.'valid');
+
             $field -> add('label@for='.$id) -> text($text.' <span class="required">'.($required ? '*' : '&nbsp;').'</span>');
+            $field -> add('span@.helper-text&for='.$id);
         });
         
         $attributes = $input -> attributes();
@@ -153,7 +171,16 @@ class Form
         {
             $input = $field -> add('input@placeholder='.$text.'&name='.$id.'&type='.$inputType.'&.validate&#'.$id);
             $input -> attributes() -> set('value', $value);
-            $field -> add('label@for='.$id) -> text($text.' <span class="required">'.($required ? '*' : '&nbsp;').'</span>');
+            $field -> add('label@for='.$id.'&.active') -> text($text.' <span class="required">'.($required ? '*' : '&nbsp;').'</span>');
+            $field -> add('span@.helper-text&for='.$id);
+            
+            $attributes = $input -> attributes();
+            $clsPrefix = '';
+            if(($value === null || $value == '') && $required)
+            {
+                $clsPrefix = 'in';
+            }
+            $attributes -> set('class', $attributes -> get('class').' '.$clsPrefix.'valid');
         });
 
         $attributes = $input -> attributes();
@@ -204,7 +231,11 @@ class Form
             $js -> attributes() -> set('type', 'text/javascript');
         }) -> text('function submit()'
             . '{'
-                . 'document.getElementById("'.$id.'").submit();'
+                . 'let form = document.getElementById("'.$id.'");'
+                . 'if(Form.validate(form))'
+                . '{'
+                    . 'form.submit();'
+                . '}'
             . '}'
         );
         
