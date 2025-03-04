@@ -107,6 +107,14 @@ class Form
                 $input -> attributes() -> set('value', $value);
                 $field -> add('label@for='.$id) -> text($text);
             });
+            
+            if($type === Form\InputTypes::Number)
+            {
+                $attributes = $input -> attributes();
+                $attributes -> set('min', $options -> min());
+                $attributes -> set('max', $options -> max());
+                $attributes -> set('step', $options -> step());
+            }
         }
 
         return $input;

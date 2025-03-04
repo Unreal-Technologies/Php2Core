@@ -14,11 +14,68 @@ class Options
     private ?\Php2Core\NoHTML\Materialize\Columns $offset;
     
     /**
+     * @var int|null
+     */
+    private ?int $min = null;
+    
+    /**
+     * @var int|null
+     */
+    private ?int $max = null;
+    
+    /**
+     * @var float|null
+     */
+    private ?float $step = null;
+    
+    /**
      */
     protected function __construct()
     {
         $this -> size = \Php2Core\NoHTML\Materialize\Columns::S12;
         $this -> offset = null;
+    }
+    
+    /**
+     * @param int|null $value
+     * @param bool $clear
+     * @return int|null
+     */
+    public function min(?int $value=null, bool $clear = false): ?int
+    {
+        if($value !== null || $clear)
+        {
+            $this -> min = $value;
+        }
+        return $this -> min;
+    }
+    
+    /**
+     * @param int|null $value
+     * @param bool $clear
+     * @return int|null
+     */
+    public function max(?int $value=null, bool $clear = false): ?int
+    {
+        if($value !== null || $clear)
+        {
+            $this -> max = $value;
+        }
+        return $this -> max;
+    }
+    
+    /**
+     * @param int|null $value
+     * @param bool $clear
+     * @return int|null
+     */
+    public function step(?float $value=null, bool $clear = false): ?float
+    {
+        if($value !== null || $clear)
+        {
+            $this -> step = $value;
+        }
+        return $this -> step;
     }
     
     /**
