@@ -67,3 +67,20 @@
     color: #aa0000;
     font-size: 14pt;
 }
+
+.nud
+{
+    position: absolute;
+    display: block;
+    border-style: outset;
+    border-width: 2px;
+    width: 20px;
+    height: 20px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.nud:hover
+{
+    border-style: inset;
+}
