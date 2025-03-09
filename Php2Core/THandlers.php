@@ -133,38 +133,32 @@ trait THandlers
             $head -> add('link', function(\Php2Core\NoHTML\Xhtml $link)
             {
                 $link -> Attributes() -> Set('rel', 'stylesheet');
-                $link -> Attributes() -> Set('href', self::PhysicalToRelativePath(__DIR__.'/../Assets/FA-all.min.5.15.4.css'));
-            });
-            $head -> add('link', function(\Php2Core\NoHTML\Xhtml $link)
-            {
-                $link -> Attributes() -> Set('rel', 'stylesheet');
-                $link -> Attributes() -> Set('href', self::PhysicalToRelativePath(__DIR__.'/../Assets/Materialize.css'));
-            });
-            $head -> add('link', function(\Php2Core\NoHTML\Xhtml $link)
-            {
-                $link -> Attributes() -> Set('rel', 'stylesheet');
-                $link -> Attributes() -> Set('href', self::PhysicalToRelativePath(__DIR__.'/../Assets/Php2Core.css'));
-            });
-            $head -> add('link', function(\Php2Core\NoHTML\Xhtml $link)
-            {
-                $link -> Attributes() -> Set('rel', 'stylesheet');
                 $link -> Attributes() -> Set('href', 'https://fonts.googleapis.com/icon?family=Material+Icons');
             });
-            $head -> add('script', function(\Php2Core\NoHTML\Xhtml $script)
+            
+            foreach(\Php2Core\IO\Directory::fromString(__DIR__.'/../Assets/Css') -> list('/\.css$/i') as $entry)
             {
-                $script -> Attributes() -> Set('type', 'text/javascript');
-                $script -> Attributes() -> Set('src', self::PhysicalToRelativePath(__DIR__.'/../Assets/jquery-3.7.1.min.js'));
-            });
-            $head -> add('script', function(\Php2Core\NoHTML\Xhtml $script)
+                if($entry instanceof \Php2Core\IO\File)
+                {
+                    $head -> add('link', function(\Php2Core\NoHTML\Xhtml $link) use($entry)
+                    {
+                        $link -> Attributes() -> Set('rel', 'stylesheet');
+                        $link -> Attributes() -> Set('href', self::PhysicalToRelativePath($entry -> path()));
+                    });
+                }
+            }
+            
+            foreach(\Php2Core\IO\Directory::fromString(__DIR__.'/../Assets/Js') -> list('/\.js/i') as $entry)
             {
-                $script -> Attributes() -> Set('type', 'text/javascript');
-                $script -> Attributes() -> Set('src', self::PhysicalToRelativePath(__DIR__.'/../Assets/Materialize.js'));
-            });
-            $head -> add('script', function(\Php2Core\NoHTML\Xhtml $script)
-            {
-                $script -> Attributes() -> Set('type', 'text/javascript');
-                $script -> Attributes() -> Set('src', self::PhysicalToRelativePath(__DIR__.'/../Assets/Xhr.js'));
-            });
+                if($entry instanceof \Php2Core\IO\File)
+                {
+                    $head -> add('script', function(\Php2Core\NoHTML\Xhtml $script) use($entry)
+                    {
+                        $script -> Attributes() -> Set('type', 'text/javascript');
+                        $script -> Attributes() -> Set('src', self::PhysicalToRelativePath($entry -> path()));
+                    });
+                }
+            }
 
             foreach($children as $child)
             {
