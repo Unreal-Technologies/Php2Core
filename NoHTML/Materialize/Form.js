@@ -28,19 +28,24 @@ var Form =
                     };
                 }
             }
+            
+            if(id === '')
+            {
+                continue;
+            }
 
-            if(element.name === element.id && element.name !== '' && element.required && element.value === '')
+            let helper = $('.helper-text[for='+id+']')[0];
+            if(element.name === element.id && element.required && element.value === '')
             {
                 requiredCheck = false;
                 element.classList.add('invalid');
-                
-                let helper = $('.helper-text[for='+id+']')[0];
                 helper.setAttribute('data-error', 'This field is required.');
 
                 continue;
             }
             
             element.classList.add('valid');
+            helper.setAttribute('data-success', 'OK.');
         }
         
         if(!requiredCheck)
