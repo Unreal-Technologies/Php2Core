@@ -105,6 +105,11 @@ class Form
         let isInt = parseFloat(step, 10) === parseInt(step, 10);
         let number = Math.roundFloat(isInt ? parseInt(value, 10) : parseFloat(value, 10), decimals);
 
+        if(number === '' || isNaN(number))
+        {
+            number = min;
+        }
+        
         if(state === 1)
         {
             number += isInt? parseInt(step, 10) : parseFloat(step, 10);
