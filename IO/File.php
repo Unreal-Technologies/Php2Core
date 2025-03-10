@@ -20,6 +20,32 @@ class File implements IFile
     private mixed $oHandler;
 
     /**
+     * @param string $name
+     * @return void
+     */
+    public function forceDownload(string $name): void
+    {
+        if(!$this -> bExists)
+        {
+            return;
+        }
+        $type = mime_content_type($this -> sPath);
+        
+        header('Content-Description: File Transfer');
+        header('Content-Type: '.$type);
+        header('Content-Disposition: attachment; filename='.$name);
+        header('Content-Transfer-Encoding: binary');
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate');
+        header('Pragma: public');
+        header('Content-Length: ' . filesize($this -> sPath));
+        ob_clean();
+        flush();
+        readfile($this -> sPath);
+        exit;
+    }
+    
+    /**
      * @param string $sPath
      * @return IFile
      */

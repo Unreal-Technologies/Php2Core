@@ -139,6 +139,21 @@ class Php2Core
     }
     
     /**
+     * @return Php2Core\IO\Directory
+     */
+    public static function temp(): Php2Core\IO\Directory
+    {
+        $temp = Php2Core\IO\Directory::fromString(__DIR__.'/__TEMP__');
+        if($temp -> exists())
+        {
+            $temp -> remove();
+        }
+        $temp -> create();
+        
+        return $temp;
+    }
+    
+    /**
      * @param string $directory
      * @return array
      */
