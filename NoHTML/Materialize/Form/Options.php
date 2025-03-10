@@ -29,6 +29,11 @@ class Options
     private ?float $step = null;
     
     /**
+     * @var SelectOptions|null
+     */
+    private ?SelectOptions $options = null;
+    
+    /**
      */
     protected function __construct()
     {
@@ -37,11 +42,25 @@ class Options
     }
     
     /**
+     * @param SelectOptions|null $value
+     * @param bool $clear
+     * @return SelectOptions|null
+     */
+    public function options(?SelectOptions $value = null, bool $clear = false): ?SelectOptions
+    {
+        if($value !== null || $clear)
+        {
+            $this -> options = $value;
+        }
+        return $this -> options;
+    }
+    
+    /**
      * @param int|null $value
      * @param bool $clear
      * @return int|null
      */
-    public function min(?int $value=null, bool $clear = false): ?int
+    public function min(?int $value = null, bool $clear = false): ?int
     {
         if($value !== null || $clear)
         {

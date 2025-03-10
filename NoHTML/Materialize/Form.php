@@ -82,7 +82,17 @@ class Form
                 break;
         }
         
-        if($type === Form\InputTypes::YesNo)
+        if($type === Form\InputTypes::Select)
+        {
+            $selectOptions = $options -> options();
+            if($selectOptions === null)
+            {
+                throw new \Php2Core\Exceptions\UnexpectedValueException('Options not set.');
+            }
+
+            return $this -> select($options, $text, $id, $value, $required, $selectOptions -> data());
+        }
+        else if($type === Form\InputTypes::YesNo)
         {
             if(!is_bool($value))
             {

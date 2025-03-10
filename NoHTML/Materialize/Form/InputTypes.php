@@ -9,4 +9,5 @@ enum InputTypes: string
     case Password = 'password';
     case YesNo = 'yes-no';
     case Number = 'number';
+    case Select = 'select';
 }
