@@ -92,14 +92,14 @@ class BinaryCompare
             {
                 $binA .= '<span class="green">'.$result['A'].'</span>';
                 $binB .= '<span class="red">'.$result['B'].'</span>';
-                $hexA .= '<span class="green">'.$this -> toHex($result['A'] === null ? '' : $result['A']).'</span>';
-                $hexB .= '<span class="red">'.$this -> toHex($result['B'] === null ? '' : $result['B']).'</span>';
+                $hexA .= $result['A'] === null ? '' : '<span class="green">'.$this -> toHex($result['A']).'</span>';
+                $hexB .= $result['B'] === null ? '' : '<span class="red">'.$this -> toHex($result['B']).'</span>';
             }
 
             $strA .= $result['A'];
             $strB .= $result['B'];
         }
-
+        
         $hashA = md5($strA);
         $hashB = md5($strB);
 
@@ -112,8 +112,8 @@ class BinaryCompare
                 <th>B (MD5: '.$hashB.')<br /><span style="font-size: 8pt;">'.$this -> aFiles['B'].'</span></th>
             </tr>
             <tr>
-                <td style="font-family: monospace;">'.$this -> coloredHexSlice($hexA).'</td>
-                <td style="font-family: monospace;">'.$this -> coloredHexSlice($hexB).'</td>
+                <td style="font-family: monospace; vertical-align: top; white-space: normal; max-width: 50%; width: 50%;">'.$this -> coloredHexSlice($hexA).'</td>
+                <td style="font-family: monospace; vertical-align: top; white-space: normal; max-width: 50%; width: 50%;">'.$this -> coloredHexSlice($hexB).'</td>
             </tr>
             <tr>
                 <th colspan="2">Binary:</th>
@@ -123,8 +123,8 @@ class BinaryCompare
                 <th>B (MD5: '.$hashB.')<br /><span style="font-size: 8pt;">'.$this -> aFiles['B'].'</span></th>
             </tr>
             <tr>
-                <td>'.$binA.'</td>
-                <td>'.$binB.'</td>
+                <td style="font-family: monospace; vertical-align: top; white-space: normal; max-width: 50%; width: 50%;">'.$binA.'</td>
+                <td style="font-family: monospace; vertical-align: top; white-space: normal; max-width: 50%; width: 50%;">'.$binB.'</td>
             </tr>
         </table>';
     }

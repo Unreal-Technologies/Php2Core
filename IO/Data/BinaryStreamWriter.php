@@ -14,6 +14,14 @@ class BinaryStreamWriter
     private string $sData = '';
     
     /**
+     * @return string
+     */
+    public function bytes(): string
+    {
+        return $this -> sData;
+    }
+    
+    /**
      * @return int
      */
     public function tell(): int
