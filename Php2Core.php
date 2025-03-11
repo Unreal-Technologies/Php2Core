@@ -1,19 +1,19 @@
 <?php
 class Php2Core
 {
-    public const Temp = 0x00000000;
-    public const Cache = 0x01000000;
-    public const Start = 0x02000000;
-    public const Root = 0x03000000;
-    public const Version = 0x04000000;
-    public const Configuration = 0x05000000;
-    public const Debug = 0x06000000;
-    public const Title = 0x07000000;
+    public const Root           = 0x01000000;
+    public const Temp           = 0x01000001;
+    public const Cache          = 0x01000002;
+    public const Start          = 0x02000000;
+    public const Debug          = 0x02000001;
+    public const Title          = 0x02000002;
+    public const Version        = 0x03000000;
+    public const Configuration  = 0x04000000;
+    public const Database       = 0x05000000;
     
     //<editor-fold defaultstate="collapsed" desc="Traits">
     
     use \Php2Core\Php2Core\TServerAdminCommands;
-    use \Php2Core\Php2Core\TDatabase;
     use \Php2Core\Php2Core\TRouting;
     use \Php2Core\Php2Core\THandlers;
     use \Php2Core\Php2Core\TSession;
@@ -249,6 +249,61 @@ class Php2Core
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Private">
+    
+    /**
+     * @return void
+     */
+    private static function initializeDatabase(): void
+    {
+        $dbInfo1 = PHP2CORE -> get(Php2Core::Configuration) -> get('Database');
+        $dbInfo2 = PHP2CORE -> get(Php2Core::Configuration) -> get('CDatabase');
+        
+        $dbc1 = \Php2Core\Db\Database::createInstance(PHP2CORE -> get(Php2Core::Title), $dbInfo1['Host'], $dbInfo1['Username'], $dbInfo1['Password'], $dbInfo1['Database']);
+        $dbc2 = \Php2Core\Db\Database::createInstance('Php2Core', $dbInfo2['Host'], $dbInfo2['Username'], $dbInfo2['Password'], $dbInfo2['Database']);
+        
+        PHP2CORE -> set(Php2Core::Database, [$dbc1, $dbc2]);
+        
+        self::initializeDatabaseOverride($dbc2, $dbInfo2);
+        self::initializeDatabaseOverride($dbc1, $dbInfo1);
+    }
+    
+    /**
+     * @param \Php2Core\Db\Database $instance
+     * @param array $configuration
+     * @return void
+     * @throws \PDOException
+     */
+    private static function initializeDatabaseOverride(\Php2Core\Db\Database $instance, array $configuration): void
+    {
+        $instance -> query('SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = \''.$configuration['Database'].'\'');
+        
+        try
+        {
+            $instance -> execute();
+        } 
+        catch (\PDOException $pex) 
+        {
+            if($pex -> getCode() === 1049)
+            {
+                $structureFile = realpath(str_replace(['{ROOT}', '{__DIR__}'], [ROOT, __DIR__.'/..'], $configuration['Structure']));
+                $contentFile = realpath(str_replace(['{ROOT}', '{__DIR__}'], [ROOT, __DIR__.'/..'], $configuration['Content']));
+                
+                if($structureFile !== false)
+                {
+                    $instance -> structure(file_get_contents($structureFile), \Php2Core\Db\Cache::CACHE_MEMORY, true);
+                }
+                
+                if($contentFile !== false)
+                {
+                    include($contentFile);
+                }
+                
+                PHP2CORE -> refresh(PHP2CORE -> baseUrl());
+                return;
+            }
+            throw $pex;
+        }
+    }
     
     //</editor-fold>
     //</editor-fold>
