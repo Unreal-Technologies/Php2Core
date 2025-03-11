@@ -24,6 +24,7 @@ class Php2Core
     public static function refresh(string $url): void
     {
         header('Location: '.$url);
+        exit;
     }
     
     /**
@@ -118,8 +119,9 @@ class Php2Core
     public static function physicalToRelativePath(string $path): string
     {
         $basePath = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].pathinfo($_SERVER['SCRIPT_NAME'])['dirname'];
-
-        $new = str_replace([ROOT.'\\', ROOT.'/', '\\', '//', ':/'], ['', '', '/', '/', '://'], $path);
+        $root = CORE -> get(\Php2Core\Php2Core\CoreProperties::Root);
+        
+        $new = str_replace([$root.'\\', $root.'/', '\\', '//', ':/'], ['', '', '/', '/', '://'], $path);
         if($new !== $path)
         {
             return $basePath.'/'.$new;
@@ -136,6 +138,19 @@ class Php2Core
         //get Directory
         $pi = pathinfo(__DIR__);
         return $pi['dirname'];
+    }
+    
+    /**
+     * @return \Php2Core\IO\Directory
+     */
+    public static function cache(): \Php2Core\IO\Directory
+    {
+        $cache = Php2Core\IO\Directory::fromString(__DIR__.'/__CACHE__');
+        if(!$cache -> exists())
+        {
+            $cache -> create();
+        }
+        return $cache;
     }
     
     /**

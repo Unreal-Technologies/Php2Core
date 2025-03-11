@@ -8,9 +8,30 @@ trait TOtherInitializers
      */
     public static function initialize(): void
     {
-        self::initializeStart();
-        self::initializeVersion();
-        self::initializeRoot();
+        require_once(__DIR__.'/../IO/IDiskManager.php');
+        require_once(__DIR__.'/../IO/IDirectory.php');
+        require_once(__DIR__.'/../IO/Directory.php');
+        require_once(__DIR__.'/../IO/IFile.php');
+        require_once(__DIR__.'/../IO/File.php');
+        require_once(__DIR__.'/CoreProperties.php');
+        require_once(__DIR__.'/Core.php');
+        require_once(__DIR__.'/../Version.php');
+        
+        define('CORE', new Core(function(Core $core)
+        {
+            $core -> set(CoreProperties::Temp, \Php2Core::temp());
+            $core -> set(CoreProperties::Cache, \Php2Core::cache());
+            $core -> set(CoreProperties::Root, \Php2Core::root());
+            $core -> set(CoreProperties::Start, microtime(true));
+            $core -> set(CoreProperties::Version, new \Php2Core\Version('Php2Core', 1,0,0,2, 'https://github.com/Unreal-Technologies/Php2Core'));
+        }));
+        
+        session_start();
+
+//        echo '<xmp>';
+//        print_r(CORE);
+//        echo '</xmp>';
+//        
         self::initializeConfiguration();
         self::initializeAutoloading();
         self::initializeHandlerOverride();
@@ -26,7 +47,7 @@ trait TOtherInitializers
      */
     private static function initializeConfiguration(): void
     {
-        $appConfigFile = ROOT.'/Assets/Config.ini';
+        $appConfigFile = CORE -> get(CoreProperties::Root).'/Assets/Config.ini';
         $coreConfigFile = __DIR__.'/../Assets/Config.ini';
         if(!file_exists($appConfigFile))
         {
@@ -44,31 +65,5 @@ trait TOtherInitializers
         ));
         define('DEBUG', (int)CONFIGURATION -> Get('Configuration/Debug') === 1);
         define('TITLE', CONFIGURATION -> Get('Configuration/Title'));
-    }
-    
-    /**
-     * @return void
-     */
-    private static function initializeStart(): void
-    {
-        define('TSTART', microtime(true));
-        session_start();
-    }
-    
-    /**
-     * @return void
-     */
-    private static function initializeRoot(): void
-    {
-        define('ROOT', self::root());
-    }
-    
-    /**
-     * @return void
-     */
-    private static function initializeVersion(): void
-    {
-        require_once(__DIR__.'/../Version.php');
-        define('VERSION', new \Php2Core\Version('Php2Core', 1,0,0,2, 'https://github.com/Unreal-Technologies/Php2Core'));
     }
 }
