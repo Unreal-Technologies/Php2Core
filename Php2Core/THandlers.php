@@ -10,7 +10,7 @@ trait THandlers
     {
         $isXhr = isset($_GET['mode']) && $_GET['mode'] === 'xhr';
         
-        if((int)PHP2CORE -> get(CoreProperties::Configuration) -> get('Logic/ErrorHandling') === 1 && !$isXhr)
+        if((int)PHP2CORE -> get(\Php2Core\CoreProperties::Configuration) -> get('Logic/ErrorHandling') === 1 && !$isXhr)
         {
             //register handlers
             set_error_handler('Php2Core::ErrorHandler');
@@ -111,12 +111,12 @@ trait THandlers
     {
         XHTML -> get('body', function(\Php2Core\NoHTML\Xhtml $body)
         {
-            $dif = microtime(true) - PHP2CORE -> get(CoreProperties::Start);
+            $dif = microtime(true) - PHP2CORE -> get(\Php2Core\CoreProperties::Start);
             
             $body -> add('div@#execution-time') -> text('Process time: '.number_format(round($dif * 1000, 4), 4, ',', '.').' ms');
             $body -> add('div@#version', function(\Php2Core\NoHTML\Xhtml $div)
             {
-                PHP2CORE -> get(CoreProperties::Version) -> Render($div);
+                PHP2CORE -> get(\Php2Core\CoreProperties::Version) -> Render($div);
             });
         });
         XHTML -> get('head', function(\Php2Core\NoHTML\Xhtml $head)
@@ -169,7 +169,7 @@ trait THandlers
         //output
         echo XHTML;
         
-        if(PHP2CORE -> get(CoreProperties::Debug) && (int)PHP2CORE -> get(CoreProperties::Configuration) -> get('Configuration/XhtmlOut') === 1)
+        if(PHP2CORE -> get(\Php2Core\CoreProperties::Debug) && (int)PHP2CORE -> get(\Php2Core\CoreProperties::Configuration) -> get('Configuration/XhtmlOut') === 1)
         {
             echo '<hr />';
             echo '<xmp>';

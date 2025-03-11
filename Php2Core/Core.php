@@ -20,7 +20,7 @@ class Core
      * @param CoreProperties $property
      * @param mixed $value
      */
-    public function set(CoreProperties $property, mixed $value)
+    public function set(\Php2Core\CoreProperties $property, mixed $value)
     {
         $this -> data[$property -> value] = $value;
     }
@@ -29,7 +29,7 @@ class Core
      * @param CoreProperties $property
      * @return mixed
      */
-    public function get(CoreProperties $property): mixed
+    public function get(\Php2Core\CoreProperties $property): mixed
     {
         if(isset($this -> data[$property -> value]))
         {

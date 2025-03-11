@@ -1,5 +1,5 @@
 <?php
-namespace Php2Core\Php2Core;
+namespace Php2Core;
 
 require_once('Php2Core/Collections/Enum/TInfo.php');
 
