@@ -8,7 +8,7 @@ trait TAutoloading
      */
     private static function initializeAutoloading(): void
     {
-        if((int)CONFIGURATION -> Get('Logic/Autoloading') === 1)
+        if((int)PHP2CORE -> get(CoreProperties::Configuration) -> get('Logic/Autoloading') === 1)
         {
             //define map file;
             $mapFile = __DIR__.'/../class.map';

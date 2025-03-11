@@ -10,7 +10,7 @@ trait THandlers
     {
         $isXhr = isset($_GET['mode']) && $_GET['mode'] === 'xhr';
         
-        if((int)CONFIGURATION -> get('Logic/ErrorHandling') === 1 && !$isXhr)
+        if((int)PHP2CORE -> get(CoreProperties::Configuration) -> get('Logic/ErrorHandling') === 1 && !$isXhr)
         {
             //register handlers
             set_error_handler('Php2Core::ErrorHandler');
@@ -169,7 +169,7 @@ trait THandlers
         //output
         echo XHTML;
         
-        if(DEBUG && (int)CONFIGURATION -> get('Configuration/XhtmlOut') === 1)
+        if(PHP2CORE -> get(CoreProperties::Debug) && (int)PHP2CORE -> get(CoreProperties::Configuration) -> get('Configuration/XhtmlOut') === 1)
         {
             echo '<hr />';
             echo '<xmp>';

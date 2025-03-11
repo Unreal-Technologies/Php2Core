@@ -8,10 +8,10 @@ trait TDatabase
      */
     private static function initializeDatabase(): void
     {
-        $dbInfo1 = CONFIGURATION -> get('Database');
-        $dbInfo2 = CONFIGURATION -> get('CDatabase');
+        $dbInfo1 = PHP2CORE -> get(CoreProperties::Configuration) -> get('Database');
+        $dbInfo2 = PHP2CORE -> get(CoreProperties::Configuration) -> get('CDatabase');
         
-        $dbc1 = \Php2Core\Db\Database::createInstance(TITLE, $dbInfo1['Host'], $dbInfo1['Username'], $dbInfo1['Password'], $dbInfo1['Database']);
+        $dbc1 = \Php2Core\Db\Database::createInstance(PHP2CORE -> get(CoreProperties::Title), $dbInfo1['Host'], $dbInfo1['Username'], $dbInfo1['Password'], $dbInfo1['Database']);
         $dbc2 = \Php2Core\Db\Database::createInstance('Php2Core', $dbInfo2['Host'], $dbInfo2['Username'], $dbInfo2['Password'], $dbInfo2['Database']);
         
         if(!defined('Database'))

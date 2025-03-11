@@ -4,7 +4,6 @@ require_once('Php2Core/TDatabase.php');
 require_once('Php2Core/TRouting.php');
 require_once('Php2Core/TAutoloading.php');
 require_once('Php2Core/THandlers.php');
-require_once('Php2Core/TOtherInitializers.php');
 require_once('Php2Core/TSession.php');
 
 class Php2Core
@@ -14,7 +13,6 @@ class Php2Core
     use \Php2Core\Php2Core\TRouting;
     use \Php2Core\Php2Core\TAutoloading;
     use \Php2Core\Php2Core\THandlers;
-    use \Php2Core\Php2Core\TOtherInitializers;
     use \Php2Core\Php2Core\TSession;
 
     /**
@@ -51,18 +49,36 @@ class Php2Core
             $core -> set(\Php2Core\Php2Core\CoreProperties::Root, $root);
             $core -> set(\Php2Core\Php2Core\CoreProperties::Temp, $temp);
             $core -> set(\Php2Core\Php2Core\CoreProperties::Cache, $cache);
-            
             $core -> set(\Php2Core\Php2Core\CoreProperties::Start, microtime(true));
             $core -> set(\Php2Core\Php2Core\CoreProperties::Version, new \Php2Core\Version('Php2Core', 1,0,0,2, 'https://github.com/Unreal-Technologies/Php2Core'));
+            
+            
+            $appConfigFile = \Php2Core\IO\File::fromDirectory($root, '/Assets/Config.ini');
+            if(!$appConfigFile -> exists())
+            {
+                $appConfigFile -> write(file_get_contents(__DIR__.'/Assets/Config.default.ini'));
+            }
+            
+            $coreConfigFile = \Php2Core\IO\File::fromString(__DIR__.'/Assets/Config.ini');
+            if(!$coreConfigFile -> exists())
+            {
+                $coreConfigFile -> write(file_get_contents(__DIR__.'/Assets/Config.default.ini'));
+            }
+            
+            require_once(__DIR__.'/Configuration.php');
+            
+            $configuration = new \Php2Core\Configuration(
+                array_merge(parse_ini_file($appConfigFile -> path(), true), parse_ini_file($coreConfigFile -> path(), true)),
+            );
+            
+            $core -> set(\Php2Core\Php2Core\CoreProperties::Configuration, $configuration);
+            $core -> set(\Php2Core\Php2Core\CoreProperties::Debug, (int)$configuration -> get('Configuration/Debug') === 1);
+            $core -> set(\Php2Core\Php2Core\CoreProperties::Title, $configuration -> get('Configuration/Title'));
+
         }));
         
         session_start();
 
-//        echo '<xmp>';
-//        print_r(CORE);
-//        echo '</xmp>';
-//        
-        self::initializeConfiguration();
         self::initializeAutoloading();
         self::initializeHandlerOverride();
         self::initializeDatabase();

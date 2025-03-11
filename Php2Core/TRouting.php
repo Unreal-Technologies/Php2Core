@@ -36,7 +36,7 @@ trait TRouting
     public static function getInstanceID(): int
     {
         $coreDbc = \Php2Core\Db\Database::getInstance('Php2Core');
-        $coreDbc -> query('select `id` from `instance` where `name` = "'.CONFIGURATION -> get('Configuration/Title').'"');
+        $coreDbc -> query('select `id` from `instance` where `name` = "'.PHP2CORE -> get(CoreProperties::Title).'"');
         $result = $coreDbc -> execute();
 
         if($result['iRowCount'] > 0)

@@ -12,4 +12,7 @@ enum CoreProperties: string
     case Start = 'start';
     case Root = 'root';
     case Version = 'version';
+    case Configuration = 'configuration';
+    case Debug = 'debug';
+    case Title = 'title';
 }
