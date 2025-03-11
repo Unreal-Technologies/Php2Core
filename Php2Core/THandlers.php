@@ -111,12 +111,12 @@ trait THandlers
     {
         XHTML -> get('body', function(\Php2Core\NoHTML\Xhtml $body)
         {
-            $dif = microtime(true) - CORE -> get(CoreProperties::Start);
+            $dif = microtime(true) - PHP2CORE -> get(CoreProperties::Start);
             
             $body -> add('div@#execution-time') -> text('Process time: '.number_format(round($dif * 1000, 4), 4, ',', '.').' ms');
             $body -> add('div@#version', function(\Php2Core\NoHTML\Xhtml $div)
             {
-                CORE -> get(CoreProperties::Version) -> Render($div);
+                PHP2CORE -> get(CoreProperties::Version) -> Render($div);
             });
         });
         XHTML -> get('head', function(\Php2Core\NoHTML\Xhtml $head)

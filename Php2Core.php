@@ -18,6 +18,61 @@ class Php2Core
     use \Php2Core\Php2Core\TSession;
 
     /**
+     * @return void
+     */
+    public static function initialize(): void
+    {
+        require_once(__DIR__.'/IO/IDiskManager.php');
+        require_once(__DIR__.'/IO/IDirectory.php');
+        require_once(__DIR__.'/IO/Directory.php');
+        require_once(__DIR__.'/IO/IFile.php');
+        require_once(__DIR__.'/IO/File.php');
+        require_once(__DIR__.'/Php2Core/CoreProperties.php');
+        require_once(__DIR__.'/Php2Core/Core.php');
+        require_once(__DIR__.'/Version.php');
+        
+        define('PHP2CORE', new Php2Core\Php2Core\Core(function(Php2Core\Php2Core\Core $core)
+        {
+            $root = \Php2Core\IO\Directory::fromString(__DIR__.'/../');
+            
+            $temp = Php2Core\IO\Directory::fromString(__DIR__.'/__TEMP__');
+            if($temp -> exists())
+            {
+                $temp -> remove();
+            }
+            $temp -> create();
+            
+            $cache = Php2Core\IO\Directory::fromString(__DIR__.'/__CACHE__');
+            if(!$cache -> exists())
+            {
+                $cache -> create();
+            }
+
+            $core -> set(\Php2Core\Php2Core\CoreProperties::Root, $root);
+            $core -> set(\Php2Core\Php2Core\CoreProperties::Temp, $temp);
+            $core -> set(\Php2Core\Php2Core\CoreProperties::Cache, $cache);
+            
+            $core -> set(\Php2Core\Php2Core\CoreProperties::Start, microtime(true));
+            $core -> set(\Php2Core\Php2Core\CoreProperties::Version, new \Php2Core\Version('Php2Core', 1,0,0,2, 'https://github.com/Unreal-Technologies/Php2Core'));
+        }));
+        
+        session_start();
+
+//        echo '<xmp>';
+//        print_r(CORE);
+//        echo '</xmp>';
+//        
+        self::initializeConfiguration();
+        self::initializeAutoloading();
+        self::initializeHandlerOverride();
+        self::initializeDatabase();
+        self::initializeServerAdminCommands();
+        self::initializeSession();
+        self::initializeRouting();
+        self::executeServerAdminCommands();
+    }
+    
+    /**
      * @param string $url
      * @return void
      */
@@ -119,7 +174,7 @@ class Php2Core
     public static function physicalToRelativePath(string $path): string
     {
         $basePath = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].pathinfo($_SERVER['SCRIPT_NAME'])['dirname'];
-        $root = CORE -> get(\Php2Core\Php2Core\CoreProperties::Root);
+        $root = PHP2CORE -> get(\Php2Core\Php2Core\CoreProperties::Root) -> path();
         
         $new = str_replace([$root.'\\', $root.'/', '\\', '//', ':/'], ['', '', '/', '/', '://'], $path);
         if($new !== $path)
@@ -129,45 +184,7 @@ class Php2Core
 
         throw new Php2Core\Exceptions\NotImplementedException($path);
     }
-    
-    /**
-     * @return string
-     */
-    public static function root(): string
-    {
-        //get Directory
-        $pi = pathinfo(__DIR__);
-        return $pi['dirname'];
-    }
-    
-    /**
-     * @return \Php2Core\IO\Directory
-     */
-    public static function cache(): \Php2Core\IO\Directory
-    {
-        $cache = Php2Core\IO\Directory::fromString(__DIR__.'/__CACHE__');
-        if(!$cache -> exists())
-        {
-            $cache -> create();
-        }
-        return $cache;
-    }
-    
-    /**
-     * @return Php2Core\IO\Directory
-     */
-    public static function temp(): Php2Core\IO\Directory
-    {
-        $temp = Php2Core\IO\Directory::fromString(__DIR__.'/__TEMP__');
-        if($temp -> exists())
-        {
-            $temp -> remove();
-        }
-        $temp -> create();
-        
-        return $temp;
-    }
-    
+
     /**
      * @param string $directory
      * @return array
