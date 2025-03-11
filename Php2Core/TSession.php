@@ -3,10 +3,6 @@ namespace Php2Core\Php2Core;
 
 trait TSession
 {
-    private static function initializeSession(): void
-    {
-    }
-    
     /**
      * @param string $path
      * @return mixed

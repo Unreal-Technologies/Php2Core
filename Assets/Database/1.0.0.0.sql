@@ -81,7 +81,6 @@ insert into `route`(`default`, `method`, `match`, `target`, `type`, `auth`)
 values
 ('false', 'get', 'index', 'index.php', 'file', 'false'),
 ('false', 'get', 'admin-rdb', 'Php2Core::ResetDatabases', 'function', 'true'),
-('false', 'get', 'admin-cm', 'Php2Core::ClassMap', 'function', 'true'),
 ('false', 'get', 'login', 'login.php', 'file', 'false'),
 ('false', 'post', 'login', 'login.php', 'file', 'false'),
 ('false', 'get', 'logout', 'logout.php', 'file', 'true');
