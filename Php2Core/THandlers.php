@@ -128,7 +128,7 @@ trait THandlers
             {
                 $link -> Attributes() -> Set('rel', 'icon');
                 $link -> Attributes() -> Set('type', 'image/x-icon');
-                $link -> Attributes() -> Set('href', self::PhysicalToRelativePath(__DIR__.'/../Assets/Images/favicon.ico'));
+                $link -> Attributes() -> Set('href', PHP2CORE -> physicalToRelativePath(__DIR__.'/../Assets/Images/favicon.ico'));
             });
             $head -> add('link', function(\Php2Core\NoHTML\Xhtml $link)
             {
@@ -143,7 +143,7 @@ trait THandlers
                     $head -> add('link', function(\Php2Core\NoHTML\Xhtml $link) use($entry)
                     {
                         $link -> Attributes() -> Set('rel', 'stylesheet');
-                        $link -> Attributes() -> Set('href', self::PhysicalToRelativePath($entry -> path()));
+                        $link -> Attributes() -> Set('href', PHP2CORE -> physicalToRelativePath($entry -> path()));
                     });
                 }
             }
@@ -155,7 +155,7 @@ trait THandlers
                     $head -> add('script', function(\Php2Core\NoHTML\Xhtml $script) use($entry)
                     {
                         $script -> Attributes() -> Set('type', 'text/javascript');
-                        $script -> Attributes() -> Set('src', self::PhysicalToRelativePath($entry -> path()));
+                        $script -> Attributes() -> Set('src', PHP2CORE -> physicalToRelativePath($entry -> path()));
                     });
                 }
             }

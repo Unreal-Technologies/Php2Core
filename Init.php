@@ -18,5 +18,5 @@ $xhtml -> add('body');
 $head -> add('script', function(\Php2Core\NoHTML\Xhtml $script)
 {
     $script -> Attributes() -> Set('type', 'text/javascript');
-    $script -> Attributes() -> Set('src', Php2Core::PhysicalToRelativePath(__DIR__.'/NoHTML/Materialize/Form.js'));
+    $script -> Attributes() -> Set('src', PHP2CORE -> physicalToRelativePath(__DIR__.'/NoHTML/Materialize/Form.js'));
 });
