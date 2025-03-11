@@ -33,14 +33,14 @@ class Php2Core
         {
             $root = \Php2Core\IO\Directory::fromString(__DIR__.'/../');
             
-            $temp = Php2Core\IO\Directory::fromString(__DIR__.'/__TEMP__');
+            $temp = Php2Core\IO\Directory::fromDirectory($root, '/__TEMP__');
             if($temp -> exists())
             {
                 $temp -> remove();
             }
             $temp -> create();
             
-            $cache = Php2Core\IO\Directory::fromString(__DIR__.'/__CACHE__');
+            $cache = Php2Core\IO\Directory::fromDirectory($root, '__CACHE__');
             if(!$cache -> exists())
             {
                 $cache -> create();
@@ -56,13 +56,13 @@ class Php2Core
             $appConfigFile = \Php2Core\IO\File::fromDirectory($cache, 'Config.app.ini');
             if(!$appConfigFile -> exists())
             {
-                $appConfigFile -> write(file_get_contents(__DIR__.'/Assets/Config.default.ini'));
+                $appConfigFile -> write(file_get_contents(__DIR__.'/Assets/Config.App.Default.ini'));
             }
             
             $coreConfigFile = \Php2Core\IO\File::fromDirectory($cache, 'Config.Core.ini');
             if(!$coreConfigFile -> exists())
             {
-                $coreConfigFile -> write(file_get_contents(__DIR__.'/Assets/Config.default.ini'));
+                $coreConfigFile -> write(file_get_contents(__DIR__.'/Assets/Config.Core.Default.ini'));
             }
             
             require_once(__DIR__.'/Configuration.php');
