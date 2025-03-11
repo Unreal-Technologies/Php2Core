@@ -29,7 +29,7 @@ class Router
             $composedUrl = $_SERVER['CONTEXT_DOCUMENT_ROOT'].$_SERVER['REDIRECT_URL'];
         }
 
-        $slug = str_ireplace(str_replace('\\', '/', PHP2CORE -> get(\Php2Core\CoreProperties::Root) -> path()), '', $composedUrl);
+        $slug = str_ireplace(str_replace('\\', '/', PHP2CORE -> get(\Php2Core::Root) -> path()), '', $composedUrl);
         if($slug[0] === '/')
         {
             $slug = substr($slug, 1);

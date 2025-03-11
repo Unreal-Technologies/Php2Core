@@ -1,6 +1,15 @@
 <?php
 class Php2Core
 {
+    public const Temp = 0x00000000;
+    public const Cache = 0x01000000;
+    public const Start = 0x02000000;
+    public const Root = 0x03000000;
+    public const Version = 0x04000000;
+    public const Configuration = 0x05000000;
+    public const Debug = 0x06000000;
+    public const Title = 0x07000000;
+    
     //<editor-fold defaultstate="collapsed" desc="Traits">
     
     use \Php2Core\Php2Core\TServerAdminCommands;
@@ -33,23 +42,23 @@ class Php2Core
     //<editor-fold defaultstate="collapsed" desc="Public">
     
     /**
-     * @param CoreProperties $property
+     * @param int $property
      * @param mixed $value
      */
-    public function set(Php2Core\CoreProperties $property, mixed $value)
+    public function set(int $property, mixed $value)
     {
-        $this -> data[$property -> value] = $value;
+        $this -> data[$property] = $value;
     }
     
     /**
-     * @param CoreProperties $property
+     * @param int $property
      * @return mixed
      */
-    public function get(Php2Core\CoreProperties $property): mixed
+    public function get(int $property): mixed
     {
-        if(isset($this -> data[$property -> value]))
+        if(isset($this -> data[$property]))
         {
-            return $this -> data[$property -> value];
+            return $this -> data[$property];
         }
         return null;
     }
@@ -92,7 +101,7 @@ class Php2Core
     public function physicalToRelativePath(string $path): string
     {
         $basePath = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].pathinfo($_SERVER['SCRIPT_NAME'])['dirname'];
-        $root = $this -> get(\Php2Core\CoreProperties::Root) -> path();
+        $root = $this -> get(\Php2Core::Root) -> path();
         
         $new = str_replace([$root.'\\', $root.'/', '\\', '//', ':/'], ['', '', '/', '/', '://'], $path);
         if($new !== $path)
@@ -198,11 +207,11 @@ class Php2Core
                 $cache -> create();
             }
 
-            $core -> set(Php2Core\CoreProperties::Root, $root);
-            $core -> set(Php2Core\CoreProperties::Temp, $temp);
-            $core -> set(Php2Core\CoreProperties::Cache, $cache);
-            $core -> set(Php2Core\CoreProperties::Start, microtime(true));
-            $core -> set(Php2Core\CoreProperties::Version, new \Php2Core\Version('Php2Core', 1,0,0,2, 'https://github.com/Unreal-Technologies/Php2Core'));
+            $core -> set($core::Root, $root);
+            $core -> set($core::Temp, $temp);
+            $core -> set($core::Cache, $cache);
+            $core -> set($core::Start, microtime(true));
+            $core -> set($core::Version, new \Php2Core\Version('Php2Core', 1,0,0,2, 'https://github.com/Unreal-Technologies/Php2Core'));
             
             
             $appConfigFile = \Php2Core\IO\File::fromDirectory($cache, 'Config.app.ini');
@@ -223,9 +232,9 @@ class Php2Core
                 array_merge(parse_ini_file($appConfigFile -> path(), true), parse_ini_file($coreConfigFile -> path(), true)),
             );
             
-            $core -> set(Php2Core\CoreProperties::Configuration, $configuration);
-            $core -> set(Php2Core\CoreProperties::Debug, (int)$configuration -> get('Configuration/Debug') === 1);
-            $core -> set(Php2Core\CoreProperties::Title, $configuration -> get('Configuration/Title'));
+            $core -> set($core::Configuration, $configuration);
+            $core -> set($core::Debug, (int)$configuration -> get('Configuration/Debug') === 1);
+            $core -> set($core::Title, $configuration -> get('Configuration/Title'));
 
         }));
         

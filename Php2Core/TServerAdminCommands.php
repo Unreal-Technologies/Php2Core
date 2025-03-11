@@ -9,7 +9,7 @@ trait TServerAdminCommands
     private static function initializeServerAdminCommands(): void
     {
         $ip = $_SERVER['REMOTE_ADDR'];
-        define('SERVER_ADMIN', preg_match('/'.$ip.'/i', PHP2CORE -> get(\Php2Core\CoreProperties::Configuration) -> get('RemoteAdmin/IPs')));
+        define('SERVER_ADMIN', preg_match('/'.$ip.'/i', PHP2CORE -> get(\Php2Core::Configuration) -> get('RemoteAdmin/IPs')));
     }
     
     /**
