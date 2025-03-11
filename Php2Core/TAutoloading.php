@@ -172,7 +172,7 @@ trait TAutoloading
                     } 
                     catch (\Throwable $ex) 
                     { 
-						$entry['message'] = $ex -> getMessage();
+                        $entry['message'] = $ex -> getMessage();
 						
                         $map['Skipped'][] = $entry;
                     }

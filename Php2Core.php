@@ -53,13 +53,13 @@ class Php2Core
             $core -> set(\Php2Core\Php2Core\CoreProperties::Version, new \Php2Core\Version('Php2Core', 1,0,0,2, 'https://github.com/Unreal-Technologies/Php2Core'));
             
             
-            $appConfigFile = \Php2Core\IO\File::fromDirectory($root, '/Assets/Config.ini');
+            $appConfigFile = \Php2Core\IO\File::fromDirectory($cache, 'Config.app.ini');
             if(!$appConfigFile -> exists())
             {
                 $appConfigFile -> write(file_get_contents(__DIR__.'/Assets/Config.default.ini'));
             }
             
-            $coreConfigFile = \Php2Core\IO\File::fromString(__DIR__.'/Assets/Config.ini');
+            $coreConfigFile = \Php2Core\IO\File::fromDirectory($cache, 'Config.Core.ini');
             if(!$coreConfigFile -> exists())
             {
                 $coreConfigFile -> write(file_get_contents(__DIR__.'/Assets/Config.default.ini'));
