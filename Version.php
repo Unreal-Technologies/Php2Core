@@ -113,7 +113,7 @@ class Version
      * @param NoHTML\Raw $container
      * @return void
      */
-    public function render(NoHTML\XHtml $container): void
+    public function render(GUI\NoHTML\XHtml $container): void
     {
         $raw = $this -> sName.' ( '.$this -> iBuild.'.'.$this -> iMajor.'.'.$this -> iMinor.'.'.$this -> iRevision.' )';
         
@@ -124,7 +124,7 @@ class Version
         }
         else
         {
-            $container -> add('a', function(NoHTML\XHtml $a) use($raw)
+            $container -> add('a', function(GUI\NoHTML\XHtml $a) use($raw)
             {
                 $a -> text($raw);
                 $a -> attributes() -> set('href', $this -> sUrl);
@@ -135,13 +135,13 @@ class Version
         //Go Through Children
         if(count($this -> aChildren) !== 0)
         {
-            $container -> add('ul', function(NoHTML\XHtml $ul)
+            $container -> add('ul', function(GUI\NoHTML\XHtml $ul)
             {
                 foreach($this -> aChildren as $child)
                 {
-                    $ul -> add('li', function(NoHTML\XHtml $li) use($child)
+                    $ul -> add('li', function(GUI\NoHTML\XHtml $li) use($child)
                     {
-                        new NoHTML\FontAwesome\Icon($li, 'fad fa-chevron-double-right');
+                        new GUI\NoHTML\FontAwesome\Icon($li, 'fad fa-chevron-double-right');
                         $child -> render($li);
                     });
                 }

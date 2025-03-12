@@ -24,11 +24,11 @@ class Process
         for ($i = $start; $i < count($lines); $i++) {
             if($isWindows)
             {
-                $data = new \Php2Core\Collections\Generic\WindowsDataParser($lines[1], $lines[$i], $lines[2]);
+                $data = new \Php2Core\Data\Collections\Generic\WindowsDataParser($lines[1], $lines[$i], $lines[2]);
             }
             else
             {
-                $data = new \Php2Core\Collections\Generic\LinuxDataParser($lines[0], $lines[$i]);
+                $data = new \Php2Core\Data\Collections\Generic\LinuxDataParser($lines[0], $lines[$i]);
             }
             
             $buffer[] = [
@@ -43,7 +43,7 @@ class Process
         }
         $mergedByProcess = self::mergeByProcess($buffer);
 
-        return (new \Php2Core\Collections\Linq(array_values($mergedByProcess)))
+        return (new \Php2Core\Data\Collections\Linq(array_values($mergedByProcess)))
             -> select(function ($x) {
                 return new Process($x);
             })
@@ -56,10 +56,10 @@ class Process
      */
     private static function mergeByProcess(array $data): array
     {
-        $sortedData = (new \Php2Core\Collections\Linq($data))
+        $sortedData = (new \Php2Core\Data\Collections\Linq($data))
             -> orderBy(function ($x) {
                 return $x['Session']['Name'];
-            }, \Php2Core\Collections\SortDirections::Asc)
+            }, \Php2Core\Data\Collections\SortDirections::Asc)
             -> toArray();
 
         $buffer = [];
@@ -74,10 +74,10 @@ class Process
 
         $output = [];
         foreach ($buffer as $items) {
-            $sortedItems = (new \Php2Core\Collections\Linq($items))
+            $sortedItems = (new \Php2Core\Data\Collections\Linq($items))
                 -> orderBy(function ($x) {
                     return $x['Process'];
-                }, \Php2Core\Collections\SortDirections::Asc)
+                }, \Php2Core\Data\Collections\SortDirections::Asc)
                 -> toArray();
 
             $prev = null;
@@ -149,9 +149,9 @@ class Process
 
     /**
      * @param int $pid
-     * @return \Php2Core\Collections\Dictionary
+     * @return \Php2Core\Data\Collections\Dictionary
      */
-    public function pidInfo(int $pid): ?\Php2Core\Collections\Dictionary
+    public function pidInfo(int $pid): ?\Php2Core\Data\Collections\Dictionary
     {
         $exists = (new \Php2Core\Collections\Linq($this -> processes))
             -> firstOrDefault(function ($x) use ($pid) {
@@ -168,7 +168,7 @@ class Process
 
         $lines = explode("\r\n", trim($info));
 
-        return new \Php2Core\Collections\Generic\WindowsDataParser($lines[0], $lines[1]);
+        return new \Php2Core\Data\Collections\Generic\WindowsDataParser($lines[0], $lines[1]);
     }
 
     /**
@@ -184,7 +184,7 @@ class Process
      */
     public function pidList(): array
     {
-        return (new \Php2Core\Collections\Linq($this -> processes))
+        return (new \Php2Core\Data\Collections\Linq($this -> processes))
             -> select(function ($x) {
                 return $x['PID'];
             })
@@ -197,7 +197,7 @@ class Process
      */
     public function totalMemory(bool $format = false): mixed
     {
-        $sum = (new \Php2Core\Collections\Linq($this -> processes))
+        $sum = (new \Php2Core\Data\Collections\Linq($this -> processes))
             -> sum(function ($x) {
                 return $x['Memory'] -> value();
             })
@@ -218,7 +218,7 @@ class Process
      */
     public function pidMemory(int $pid, bool $format = false): mixed
     {
-        $selected = (new \Php2Core\Collections\Linq($this -> processes))
+        $selected = (new \Php2Core\Data\Collections\Linq($this -> processes))
             -> firstOrDefault(function ($x) use ($pid) {
                 return $x['PID'] === $pid;
             });

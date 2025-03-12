@@ -162,21 +162,30 @@ class Php2Core
         }
         $pathReversed = array_reverse($path);
         
-        XHTML -> get('body', function(Php2Core\NoHTML\Xhtml $body) use($pathReversed)
+        if(defined('XHTML'))
         {
-            $table = $body -> add('table@#trace');
-            $table -> add('tr/th@colspan=3') -> text('Trace');
-            
-            foreach($pathReversed as $idx => $data)
+            XHTML -> get('body', function(Php2Core\GUI\NoHTML\Xhtml $body) use($pathReversed)
             {
-                list($line, $call) = $data;
-                
-                $tr = $table -> add('tr');
-                $tr -> add('td') -> text($idx + 1);
-                $tr -> add('td') -> text($line === null ? '' : $line);
-                $tr -> add('td') -> text($call);
-            }
-        });
+                $table = $body -> add('table@#trace');
+                $table -> add('tr/th@colspan=3') -> text('Trace');
+
+                foreach($pathReversed as $idx => $data)
+                {
+                    list($line, $call) = $data;
+
+                    $tr = $table -> add('tr');
+                    $tr -> add('td') -> text($idx + 1);
+                    $tr -> add('td') -> text($line === null ? '' : $line);
+                    $tr -> add('td') -> text($call);
+                }
+            });
+        }
+        else
+        {
+            echo '<xmp>';
+            print_r($pathReversed);
+            echo '</xmp>';
+        }
     }
     
     //</editor-fold>
@@ -298,14 +307,17 @@ class Php2Core
     {
         $hasBody = false;
         
-        XHTML -> get('body', function(\Php2Core\NoHTML\Xhtml $body) use(&$hasBody, $ex)
+        if(defined('XHTML'))
         {
-            $body -> clear();
-            $body -> add('h2') -> text('Php2Core::ExceptionHandler');
-            $body -> add('xmp') -> text(print_r($ex, true));
+            XHTML -> get('body', function(\Php2Core\GUI\NoHTML\Xhtml $body) use(&$hasBody, $ex)
+            {
+                $body -> clear();
+                $body -> add('h2') -> text('Php2Core::ExceptionHandler');
+                $body -> add('xmp') -> text(print_r($ex, true));
 
-            $hasBody = true; 
-        });
+                $hasBody = true; 
+            });
+        }
         
         if(!$hasBody)
         {
@@ -322,28 +334,28 @@ class Php2Core
      */
     public static function shutdown(): void
     {
-        XHTML -> get('body', function(\Php2Core\NoHTML\Xhtml $body)
+        XHTML -> get('body', function(\Php2Core\GUI\NoHTML\Xhtml $body)
         {
             $dif = microtime(true) - PHP2CORE -> get(\Php2Core::Start);
             
             $body -> add('div@#execution-time') -> text('Process time: '.number_format(round($dif * 1000, 4), 4, ',', '.').' ms');
-            $body -> add('div@#version', function(\Php2Core\NoHTML\Xhtml $div)
+            $body -> add('div@#version', function(\Php2Core\GUI\NoHTML\Xhtml $div)
             {
                 PHP2CORE -> get(\Php2Core::Version) -> Render($div);
             });
         });
-        XHTML -> get('head', function(\Php2Core\NoHTML\Xhtml $head)
+        XHTML -> get('head', function(\Php2Core\GUI\NoHTML\Xhtml $head)
         {
             $children = $head -> children();
             $head -> clear();
             
-            $head -> add('link', function(\Php2Core\NoHTML\Xhtml $link)
+            $head -> add('link', function(\Php2Core\GUI\NoHTML\Xhtml $link)
             {
                 $link -> Attributes() -> Set('rel', 'icon');
                 $link -> Attributes() -> Set('type', 'image/x-icon');
                 $link -> Attributes() -> Set('href', PHP2CORE -> physicalToRelativePath(__DIR__.'/Assets/Images/favicon.ico'));
             });
-            $head -> add('link', function(\Php2Core\NoHTML\Xhtml $link)
+            $head -> add('link', function(\Php2Core\GUI\NoHTML\Xhtml $link)
             {
                 $link -> Attributes() -> Set('rel', 'stylesheet');
                 $link -> Attributes() -> Set('href', 'https://fonts.googleapis.com/icon?family=Material+Icons');
@@ -353,7 +365,7 @@ class Php2Core
             {
                 if($entry instanceof \Php2Core\IO\File)
                 {
-                    $head -> add('link', function(\Php2Core\NoHTML\Xhtml $link) use($entry)
+                    $head -> add('link', function(\Php2Core\GUI\NoHTML\Xhtml $link) use($entry)
                     {
                         $link -> Attributes() -> Set('rel', 'stylesheet');
                         $link -> Attributes() -> Set('href', PHP2CORE -> physicalToRelativePath($entry -> path()));
@@ -365,7 +377,7 @@ class Php2Core
             {
                 if($entry instanceof \Php2Core\IO\File)
                 {
-                    $head -> add('script', function(\Php2Core\NoHTML\Xhtml $script) use($entry)
+                    $head -> add('script', function(\Php2Core\GUI\NoHTML\Xhtml $script) use($entry)
                     {
                         $script -> Attributes() -> Set('type', 'text/javascript');
                         $script -> Attributes() -> Set('src', PHP2CORE -> physicalToRelativePath($entry -> path()));
@@ -440,8 +452,8 @@ class Php2Core
         $dbInfo1 = PHP2CORE -> get(Php2Core::Configuration) -> get('Database');
         $dbInfo2 = PHP2CORE -> get(Php2Core::Configuration) -> get('CDatabase');
         
-        $dbc1 = \Php2Core\Db\Database::createInstance(PHP2CORE -> get(Php2Core::Title), $dbInfo1['Host'], $dbInfo1['Username'], $dbInfo1['Password'], $dbInfo1['Database']);
-        $dbc2 = \Php2Core\Db\Database::createInstance('Php2Core', $dbInfo2['Host'], $dbInfo2['Username'], $dbInfo2['Password'], $dbInfo2['Database']);
+        $dbc1 = Php2Core\IO\Data\Db\Database::createInstance(PHP2CORE -> get(Php2Core::Title), $dbInfo1['Host'], $dbInfo1['Username'], $dbInfo1['Password'], $dbInfo1['Database']);
+        $dbc2 = Php2Core\IO\Data\Db\Database::createInstance('Php2Core', $dbInfo2['Host'], $dbInfo2['Username'], $dbInfo2['Password'], $dbInfo2['Database']);
         
         PHP2CORE -> set(Php2Core::Database, [$dbc1, $dbc2]);
         
@@ -455,7 +467,7 @@ class Php2Core
      * @return void
      * @throws \PDOException
      */
-    private static function initializeDatabaseOverride(\Php2Core\Db\Database $instance, array $configuration): void
+    private static function initializeDatabaseOverride(Php2Core\IO\Data\Db\Database $instance, array $configuration): void
     {
         $instance -> query('SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = \''.$configuration['Database'].'\'');
         

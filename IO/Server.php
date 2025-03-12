@@ -29,7 +29,7 @@ class Server
 		}
 		
         $result =
-            (new \Php2Core\Collections\Linq($buffer))
+            (new \Php2Core\Data\Collections\Linq($buffer))
             -> where(function ($x) 
             {
                 return (int)$x == $x;
