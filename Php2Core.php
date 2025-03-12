@@ -7,20 +7,17 @@ class Php2Core
     public const Temp           = 0x01000001;
     public const Cache          = 0x01000002;
     public const Start          = 0x02000000;
-    public const Debug          = 0x02000001;
+    public const IsDebug        = 0x02000001;
     public const Title          = 0x02000002;
+    public const IsServerAdmin  = 0x02000003;
     public const Version        = 0x03000000;
     public const Configuration  = 0x04000000;
     public const Database       = 0x05000000;
-    
-    //</editor-fold>
-    
-    //<editor-fold defaultstate="collapsed" desc="Traits">
-    
-    use \Php2Core\Php2Core\TRouting;
-    
-    //</editor-fold>
+    public const Route          = 0x06000000;
+    public const DefaultRoute   = 0x06000001;
 
+    //</editor-fold>
+    
     //<editor-fold defaultstate="collapsed" desc="Members">
     
     /**
@@ -135,6 +132,23 @@ class Php2Core
         }
 
         return preg_replace('/'.substr($pi['dirname'], 1).'.+$/i', substr($pi['dirname'], 1), $_SERVER['SCRIPT_URI']);
+    }
+    
+    /**
+     * @return int
+     */
+    public function getInstanceID(): int
+    {
+        $coreDbc = Php2Core\IO\Data\Db\Database::getInstance('Php2Core');
+        $coreDbc -> query('select `id` from `instance` where `name` = "'.$this -> get(Php2Core::Title).'"');
+        $result = $coreDbc -> execute();
+
+        if($result['iRowCount'] > 0)
+        {
+            return $result['aResults'][0]['id'];
+        }
+
+        return -1;
     }
     
     /**
@@ -288,7 +302,7 @@ class Php2Core
             );
             
             $core -> set($core::Configuration, $configuration);
-            $core -> set($core::Debug, (int)$configuration -> get('Configuration/Debug') === 1);
+            $core -> set($core::IsDebug, (int)$configuration -> get('Configuration/Debug') === 1);
             $core -> set($core::Title, $configuration -> get('Configuration/Title'));
 
         }));
@@ -435,7 +449,7 @@ class Php2Core
         //output
         echo XHTML;
         
-        if(PHP2CORE -> get(Php2Core::Debug) && (int)PHP2CORE -> get(\Php2Core::Configuration) -> get('Configuration/XhtmlOut') === 1)
+        if(PHP2CORE -> get(Php2Core::IsDebug) && (int)PHP2CORE -> get(\Php2Core::Configuration) -> get('Configuration/XhtmlOut') === 1)
         {
             echo '<hr />';
             echo '<xmp>';
@@ -449,11 +463,78 @@ class Php2Core
     
     /**
      * @return void
+     * @throws \Exception
+     */
+    private static function initializeRouting(): void
+    {
+        //Get DB Instance
+        $coreDbc = Php2Core\IO\Data\Db\Database::getInstance('Php2Core');
+        $instanceId = PHP2CORE -> getInstanceID();
+        $authenticated = PHP2CORE -> isAuthenticated();
+        $isServerAdmin = PHP2CORE -> get(Php2Core::IsServerAdmin);
+        
+        //Get Default handler
+        $coreDbc -> query(
+            'select '
+            . 'case when `match` is null then \'index\' else `match` end as `match` '
+            . 'from `route` '
+            . 'where `default` = "true" '
+            . 'and '.($isServerAdmin ? '( `instance-id` = '.$instanceId.' or `instance-id` is null )' : '`instance-id` = '.$instanceId).' '
+            . ($authenticated ? '' : 'and `auth` = "false" ')
+            . 'order by `id` asc '
+            . 'limit 0,1'
+        );
+        
+        $defaultResults = $coreDbc -> execute();
+        $defaultRoute = $defaultResults['iRowCount'] === 0 ? 'index' : $defaultResults['aResults'][0]['match'];
+        PHP2CORE -> set(Php2Core::DefaultRoute, $defaultRoute);
+        
+        //Get Router Information
+        $router = new \Php2Core\Data\Router($defaultRoute);
+        $slug = $router -> slug();
+        $possibilities = self::getPossibleMatchesFromSlug($slug);
+        
+        //Get Possible routes
+        $coreDbc -> query(
+            'select '
+            . '`method`, `match`, `target`, `type`, `auth` '
+            . 'from `route` '
+            . 'where '.($isServerAdmin ? '( `instance-id` = '.$instanceId.' or `instance-id` is null )' : '`instance-id` = '.$instanceId).' '
+            . 'and (`match` regexp \''.implode('\' or `match` regexp \'', $possibilities).'\') '
+            . ($authenticated ? '' : 'and `auth` = "false" ')
+            . ($isServerAdmin ? '' : 'and `type` != \'function\' ')
+        );
+        
+        //Register possible routes
+        $routeResult = $coreDbc -> execute();
+        foreach($routeResult['aResults'] as $row)
+        {
+            $router -> register($row['method'].'::'.$row['match'], $row['type'].'#'.$row['target']);
+        }
+        
+        //get current route (if matched)
+        $route = $router -> match();
+        PHP2CORE -> set(Php2Core::Route, $route);
+
+        //throw exception when not actually matched
+        if($route === null)
+        {
+            throw new \Exception('Route not found');
+        }
+        else if($route -> target()['type'] === 'function')
+        {
+            eval($route -> target()['target'].'();');
+            exit;
+        }
+    }
+    
+    /**
+     * @return void
      */
     private static function initializeServerAdminCommands(): void
     {
         $ip = $_SERVER['REMOTE_ADDR'];
-        define('SERVER_ADMIN', preg_match('/'.$ip.'/i', PHP2CORE -> get(\Php2Core::Configuration) -> get('RemoteAdmin/IPs')));
+        PHP2CORE -> set(Php2Core::IsServerAdmin, preg_match('/'.$ip.'/i', PHP2CORE -> get(\Php2Core::Configuration) -> get('RemoteAdmin/IPs')));
     }
     
     /**
@@ -478,8 +559,10 @@ class Php2Core
      */
     private static function executeServerAdminCommands(): void
     {
-        $info = ROUTE -> target();
-        if(SERVER_ADMIN && $info['type'] === 'function')
+        $info = PHP2CORE -> get(Php2Core::Route) -> target();
+        $isServerAdmin = PHP2CORE -> get(Php2Core::IsServerAdmin);
+        
+        if($isServerAdmin && $info['type'] === 'function')
         {
             eval($info['target'].'();');
             exit;
@@ -539,6 +622,33 @@ class Php2Core
         
         self::initializeDatabaseOverride($dbc2, $dbInfo2);
         self::initializeDatabaseOverride($dbc1, $dbInfo1);
+    }
+    
+    /**
+     * @param string $slug
+     * @return array
+     */
+    private static function getPossibleMatchesFromSlug(string $slug): array
+    {
+        $parts = explode('/', $slug);
+        $buffer = [ '^'.$parts[0].'$' ];
+        $offParts = [ $parts[0] ];
+        
+        for($i=1; $i<count($parts); $i++)
+        {
+            $offParts[$i] = '{.+}';
+            
+            $temp1 = implode('\\/', array_slice($parts, 0, $i));
+            $temp2 = implode('\\/', array_slice($offParts, 0, $i));
+            
+            $buffer[] = '^'.$temp1.'\\/'.$parts[$i].'$';
+            $buffer[] = '^'.$temp2.'\\/'.$parts[$i].'$';
+            
+            $buffer[] = '^'.$temp1.'\\/{.+}$';
+            $buffer[] = '^'.$temp2.'\\/{.+}$';
+        }
+        
+        return array_values(array_unique($buffer));
     }
     
     /**
