@@ -17,7 +17,6 @@ class Php2Core
     
     //<editor-fold defaultstate="collapsed" desc="Traits">
     
-    use \Php2Core\Php2Core\TServerAdminCommands;
     use \Php2Core\Php2Core\TRouting;
     
     //</editor-fold>
@@ -169,24 +168,27 @@ class Php2Core
             $entry = $components[$i];
             
             $args = [];
-            foreach($entry['args'] as $arg)
+            if(isset($entry['args']))
             {
-                if(is_object($arg))
+                foreach($entry['args'] as $arg)
                 {
-                    $args[] = get_class($arg);
-                    continue;
+                    if(is_object($arg))
+                    {
+                        $args[] = get_class($arg);
+                        continue;
+                    }
+                    else if(is_string($arg) && !is_numeric($arg))
+                    {
+                        $args[] = '"'.$arg.'"';
+                        continue;
+                    }
+                    else if(is_array($arg))
+                    {
+                        $args[] = 'array';
+                        continue;
+                    }
+                    $args[] = $arg;
                 }
-                else if(is_string($arg) && !is_numeric($arg))
-                {
-                    $args[] = '"'.$arg.'"';
-                    continue;
-                }
-                else if(is_array($arg))
-                {
-                    $args[] = 'array';
-                    continue;
-                }
-                $args[] = $arg;
             }
             
             if(isset($entry['class']))
@@ -448,6 +450,45 @@ class Php2Core
     /**
      * @return void
      */
+    private static function initializeServerAdminCommands(): void
+    {
+        $ip = $_SERVER['REMOTE_ADDR'];
+        define('SERVER_ADMIN', preg_match('/'.$ip.'/i', PHP2CORE -> get(\Php2Core::Configuration) -> get('RemoteAdmin/IPs')));
+    }
+    
+    /**
+     * @return void
+     */
+    private static function resetDatabases(): void //Callable Server Command
+    {
+        $appDbc = \Php2Core\IO\Data\Db\Database::getInstance(PHP2CORE -> get(Php2Core::Title));
+        $coreDbc = \Php2Core\IO\Data\Db\Database::getInstance('Php2Core');
+        
+        $appDbc -> query('drop database `'.$appDbc -> database().'`;');
+        $appDbc -> execute();
+        
+        $coreDbc -> query('drop database `'.$coreDbc -> database().'`;');
+        $coreDbc -> execute();
+
+        PHP2CORE -> refresh(PHP2CORE -> baseUrl());
+    }
+    
+    /**
+     * @return void
+     */
+    private static function executeServerAdminCommands(): void
+    {
+        $info = ROUTE -> target();
+        if(SERVER_ADMIN && $info['type'] === 'function')
+        {
+            eval($info['target'].'();');
+            exit;
+        }
+    }
+    
+    /**
+     * @return void
+     */
     private static function initializeHandlerOverride(): void
     {
         $isXhr = isset($_GET['mode']) && $_GET['mode'] === 'xhr';
@@ -491,9 +532,9 @@ class Php2Core
         $dbInfo1 = PHP2CORE -> get(Php2Core::Configuration) -> get('Database');
         $dbInfo2 = PHP2CORE -> get(Php2Core::Configuration) -> get('CDatabase');
         
-        $dbc1 = Php2Core\IO\Data\Db\Database::createInstance(PHP2CORE -> get(Php2Core::Title), $dbInfo1['Host'], $dbInfo1['Username'], $dbInfo1['Password'], $dbInfo1['Database']);
         $dbc2 = Php2Core\IO\Data\Db\Database::createInstance('Php2Core', $dbInfo2['Host'], $dbInfo2['Username'], $dbInfo2['Password'], $dbInfo2['Database']);
-        
+        $dbc1 = Php2Core\IO\Data\Db\Database::createInstance(PHP2CORE -> get(Php2Core::Title), $dbInfo1['Host'], $dbInfo1['Username'], $dbInfo1['Password'], $dbInfo1['Database']);
+
         PHP2CORE -> set(Php2Core::Database, [$dbc1, $dbc2]);
         
         self::initializeDatabaseOverride($dbc2, $dbInfo2);
@@ -501,7 +542,7 @@ class Php2Core
     }
     
     /**
-     * @param \Php2Core\Db\Database $instance
+     * @param \Php2Core\IO\Data\Db\Database $instance
      * @param array $configuration
      * @return void
      * @throws \PDOException
@@ -518,12 +559,13 @@ class Php2Core
         {
             if($pex -> getCode() === 1049)
             {
-                $structureFile = realpath(str_replace(['{ROOT}', '{__DIR__}'], [ROOT, __DIR__.'/..'], $configuration['Structure']));
-                $contentFile = realpath(str_replace(['{ROOT}', '{__DIR__}'], [ROOT, __DIR__.'/..'], $configuration['Content']));
-                
+                $root = PHP2CORE -> get(Php2Core::Root) -> path();
+                $structureFile = realpath(str_replace(['{ROOT}', '{__DIR__}'], [$root, __DIR__], $configuration['Structure']));
+                $contentFile = realpath(str_replace(['{ROOT}', '{__DIR__}'], [$root, __DIR__], $configuration['Content']));
+
                 if($structureFile !== false)
                 {
-                    $instance -> structure(file_get_contents($structureFile), \Php2Core\Db\Cache::CACHE_MEMORY, true);
+                    $instance -> structure(file_get_contents($structureFile), \Php2Core\IO\Data\Db\Cache::CACHE_MEMORY, true);
                 }
                 
                 if($contentFile !== false)
