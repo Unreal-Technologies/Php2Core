@@ -56,7 +56,7 @@ trait TRouting
         //Get DB Instance
         $coreDbc = \Php2Core\IO\Data\Db\Database::getInstance('Php2Core');
         $instanceId = self::getInstanceID();
-        $authenticated = self::isAuthenticated();
+        $authenticated = PHP2CORE -> isAuthenticated();
         
         //Get Default handler
         $coreDbc -> query(

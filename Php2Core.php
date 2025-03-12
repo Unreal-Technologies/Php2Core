@@ -19,7 +19,6 @@ class Php2Core
     
     use \Php2Core\Php2Core\TServerAdminCommands;
     use \Php2Core\Php2Core\TRouting;
-    use \Php2Core\Php2Core\TSession;
     
     //</editor-fold>
 
@@ -64,6 +63,48 @@ class Php2Core
             return $this -> data[$property];
         }
         return null;
+    }
+    
+    /**
+     * @param string $path
+     * @return mixed
+     */
+    public function session_get(string $path): mixed
+    {
+        $eval = '$_SESSION';
+        foreach(explode('/', $path) as $token)
+        {
+            $eval .= '["'.$token.'"]';
+        }
+        $data = null;
+        eval('$data = isset('.$eval.') ? '.$eval.' : null;');
+        
+        return $data;
+    }
+    
+    /**
+     * @param string $path
+     * @param mixed $data
+     * @return void
+     */
+    public function session_set(string $path, mixed $data): void
+    {
+        $eval = '$_SESSION';
+        foreach(explode('/', $path) as $token)
+        {
+            $eval .= '["'.$token.'"]';
+        }
+        $eval .= ' = $data;';
+        
+        eval($eval);
+    }
+    
+    /**
+     * @return bool
+     */
+    public function isAuthenticated(): bool
+    {
+        return $this -> session_get('user/id') !== null;
     }
     
     /**
