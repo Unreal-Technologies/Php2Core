@@ -1,5 +1,5 @@
 <?php
-namespace Php2Core;
+namespace Php2Core\Data;
 
 class Version
 {
@@ -110,10 +110,10 @@ class Version
     }
     
     /**
-     * @param NoHTML\Raw $container
+     * @param \Php2Core\GUI\NoHTML\Xhtml $container
      * @return void
      */
-    public function render(GUI\NoHTML\XHtml $container): void
+    public function render(\Php2Core\GUI\NoHTML\Xhtml $container): void
     {
         $raw = $this -> sName.' ( '.$this -> iBuild.'.'.$this -> iMajor.'.'.$this -> iMinor.'.'.$this -> iRevision.' )';
         
@@ -124,7 +124,7 @@ class Version
         }
         else
         {
-            $container -> add('a', function(GUI\NoHTML\XHtml $a) use($raw)
+            $container -> add('a', function(\Php2Core\GUI\NoHTML\Xhtml $a) use($raw)
             {
                 $a -> text($raw);
                 $a -> attributes() -> set('href', $this -> sUrl);
@@ -135,13 +135,13 @@ class Version
         //Go Through Children
         if(count($this -> aChildren) !== 0)
         {
-            $container -> add('ul', function(GUI\NoHTML\XHtml $ul)
+            $container -> add('ul', function(\Php2Core\GUI\NoHTML\Xhtml $ul)
             {
                 foreach($this -> aChildren as $child)
                 {
-                    $ul -> add('li', function(GUI\NoHTML\XHtml $li) use($child)
+                    $ul -> add('li', function(\Php2Core\GUI\NoHTML\Xhtml $li) use($child)
                     {
-                        new GUI\NoHTML\FontAwesome\Icon($li, 'fad fa-chevron-double-right');
+                        new \Php2Core\GUI\NoHTML\FontAwesome\Icon($li, 'fad fa-chevron-double-right');
                         $child -> render($li);
                     });
                 }

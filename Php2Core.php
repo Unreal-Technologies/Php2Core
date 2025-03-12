@@ -202,6 +202,8 @@ class Php2Core
      */
     public static function initialize(): void
     {
+        session_start();
+        
         define('PHP2CORE', new Php2Core(function(Php2Core $core)
         {
             $root = \Php2Core\IO\Directory::fromString(__DIR__.'/../');
@@ -223,7 +225,7 @@ class Php2Core
             $core -> set($core::Temp, $temp);
             $core -> set($core::Cache, $cache);
             $core -> set($core::Start, microtime(true));
-            $core -> set($core::Version, new \Php2Core\Version('Php2Core', 1,0,0,2, 'https://github.com/Unreal-Technologies/Php2Core'));
+            $core -> set($core::Version, new \Php2Core\Data\Version('Php2Core', 1,0,0,2, 'https://github.com/Unreal-Technologies/Php2Core'));
             
             
             $appConfigFile = \Php2Core\IO\File::fromDirectory($cache, 'Config.app.ini');
@@ -238,9 +240,7 @@ class Php2Core
                 $coreConfigFile -> write(file_get_contents(__DIR__.'/Assets/Config.Core.Default.ini'));
             }
             
-            require_once(__DIR__.'/Configuration.php');
-            
-            $configuration = new \Php2Core\Configuration(
+            $configuration = new \Php2Core\Data\Configuration(
                 array_merge(parse_ini_file($appConfigFile -> path(), true), parse_ini_file($coreConfigFile -> path(), true)),
             );
             
@@ -249,8 +249,6 @@ class Php2Core
             $core -> set($core::Title, $configuration -> get('Configuration/Title'));
 
         }));
-        
-        session_start();
 
         self::initializeDatabase();
         self::initializeServerAdminCommands();

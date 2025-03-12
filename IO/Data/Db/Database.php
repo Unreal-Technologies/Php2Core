@@ -1,7 +1,7 @@
 <?php
 namespace Php2Core\IO\Data\Db;
 
-class Database extends \Php2Core\Data
+class Database extends \Php2Core\Data\Data
 {
     /**
      * @var array

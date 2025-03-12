@@ -74,7 +74,7 @@ trait TRouting
         define('DEFAULT_ROUTE', $defaultResults['iRowCount'] === 0 ? 'index' : $defaultResults['aResults'][0]['match']);
         
         //Get Router Information
-        $router = new \Php2Core\Router(DEFAULT_ROUTE);
+        $router = new \Php2Core\Data\Router(DEFAULT_ROUTE);
         $slug = $router -> slug();
         $possibilities = self::getPossibleMatchesFromSlug($slug);
         

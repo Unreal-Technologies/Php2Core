@@ -1,5 +1,5 @@
 <?php
-namespace Php2Core;
+namespace Php2Core\Data;
 
 class Route
 {
