@@ -1,6 +1,8 @@
 <?php
 class Php2Core
 {
+    //<editor-fold defaultstate="collapsed" desc="Constants">
+    
     public const Root           = 0x01000000;
     public const Temp           = 0x01000001;
     public const Cache          = 0x01000002;
@@ -11,11 +13,12 @@ class Php2Core
     public const Configuration  = 0x04000000;
     public const Database       = 0x05000000;
     
+    //</editor-fold>
+    
     //<editor-fold defaultstate="collapsed" desc="Traits">
     
     use \Php2Core\Php2Core\TServerAdminCommands;
     use \Php2Core\Php2Core\TRouting;
-    use \Php2Core\Php2Core\THandlers;
     use \Php2Core\Php2Core\TSession;
     
     //</editor-fold>
@@ -247,8 +250,187 @@ class Php2Core
         self::executeServerAdminCommands();
     }
     
+    /**
+     * @param int $errno
+     * @param string $errstr
+     * @param string $errfile
+     * @param int $errline
+     * @return void
+     */
+    public static function errorHandler(int $errno, string $errstr, string $errfile, int $errline): void
+    {
+        $hasBody = false;
+        
+        XHTML -> get('body', function(\Php2Core\NoHTML\Xhtml $body) use(&$hasBody, $errno, $errstr, $errfile, $errline)
+        {
+            $trace = self::getTrace($body);
+            
+            $body -> clear();
+            $body -> add('h2') -> text('Php2Core::ErrorHandler');
+            $body -> add('xmp') -> text(print_r($errfile.':'.$errline, true));
+            $body -> add('xmp') -> text($errno."\r\n".print_r($errstr, true));
+            if($trace !== null)
+            {
+                $body -> append($trace);
+            }
+
+            $hasBody = true; 
+        });
+
+        if(!$hasBody)
+        {
+            echo '<h2>Php2Core::ErrorHandler</h2>';
+            echo '<xmp>';
+            var_dump($errfile);
+            var_dumP($errline);
+            var_dumP($errno);
+            var_dumP($errstr);
+            echo '</xmp>';
+        }
+        exit;
+    }
+    
+    /**
+     * @param \Throwable $ex
+     * @return void
+     */
+    public static function exceptionHandler(\Throwable $ex): void
+    {
+        $hasBody = false;
+        
+        XHTML -> get('body', function(\Php2Core\NoHTML\Xhtml $body) use(&$hasBody, $ex)
+        {
+            $body -> clear();
+            $body -> add('h2') -> text('Php2Core::ExceptionHandler');
+            $body -> add('xmp') -> text(print_r($ex, true));
+
+            $hasBody = true; 
+        });
+        
+        if(!$hasBody)
+        {
+            echo '<h2>Php2Core::ExceptionHandler</h2>';
+            echo '<xmp>';
+            print_r($ex);
+            echo '</xmp>';
+        }
+        exit;
+    }
+    
+    /**
+     * @return void
+     */
+    public static function shutdown(): void
+    {
+        XHTML -> get('body', function(\Php2Core\NoHTML\Xhtml $body)
+        {
+            $dif = microtime(true) - PHP2CORE -> get(\Php2Core::Start);
+            
+            $body -> add('div@#execution-time') -> text('Process time: '.number_format(round($dif * 1000, 4), 4, ',', '.').' ms');
+            $body -> add('div@#version', function(\Php2Core\NoHTML\Xhtml $div)
+            {
+                PHP2CORE -> get(\Php2Core::Version) -> Render($div);
+            });
+        });
+        XHTML -> get('head', function(\Php2Core\NoHTML\Xhtml $head)
+        {
+            $children = $head -> children();
+            $head -> clear();
+            
+            $head -> add('link', function(\Php2Core\NoHTML\Xhtml $link)
+            {
+                $link -> Attributes() -> Set('rel', 'icon');
+                $link -> Attributes() -> Set('type', 'image/x-icon');
+                $link -> Attributes() -> Set('href', PHP2CORE -> physicalToRelativePath(__DIR__.'/Assets/Images/favicon.ico'));
+            });
+            $head -> add('link', function(\Php2Core\NoHTML\Xhtml $link)
+            {
+                $link -> Attributes() -> Set('rel', 'stylesheet');
+                $link -> Attributes() -> Set('href', 'https://fonts.googleapis.com/icon?family=Material+Icons');
+            });
+            
+            foreach(\Php2Core\IO\Directory::fromString(__DIR__.'/Assets/Css') -> list('/\.css$/i') as $entry)
+            {
+                if($entry instanceof \Php2Core\IO\File)
+                {
+                    $head -> add('link', function(\Php2Core\NoHTML\Xhtml $link) use($entry)
+                    {
+                        $link -> Attributes() -> Set('rel', 'stylesheet');
+                        $link -> Attributes() -> Set('href', PHP2CORE -> physicalToRelativePath($entry -> path()));
+                    });
+                }
+            }
+            
+            foreach(\Php2Core\IO\Directory::fromString(__DIR__.'/Assets/Js') -> list('/\.js/i') as $entry)
+            {
+                if($entry instanceof \Php2Core\IO\File)
+                {
+                    $head -> add('script', function(\Php2Core\NoHTML\Xhtml $script) use($entry)
+                    {
+                        $script -> Attributes() -> Set('type', 'text/javascript');
+                        $script -> Attributes() -> Set('src', PHP2CORE -> physicalToRelativePath($entry -> path()));
+                    });
+                }
+            }
+
+            foreach($children as $child)
+            {
+                $head -> Append($child);
+            }
+        });
+
+        //output
+        echo XHTML;
+        
+        if(PHP2CORE -> get(Php2Core::Debug) && (int)PHP2CORE -> get(\Php2Core::Configuration) -> get('Configuration/XhtmlOut') === 1)
+        {
+            echo '<hr />';
+            echo '<xmp>';
+            print_r(str_replace(['<xmp>', '</xmp>'], ['<.xmp>', '</.xmp>'], (string)XHTML));
+            echo '</xmp>';
+        }
+    }
+    
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Private">
+    
+    /**
+     * @return void
+     */
+    private static function initializeHandlerOverride(): void
+    {
+        $isXhr = isset($_GET['mode']) && $_GET['mode'] === 'xhr';
+        
+        if((int)PHP2CORE -> get(Php2Core::Configuration) -> get('Logic/ErrorHandling') === 1 && !$isXhr)
+        {
+            //register handlers
+            set_error_handler('Php2Core::errorHandler');
+            set_exception_handler('Php2Core::exceptionHandler');
+            register_shutdown_function('Php2Core::shutdown');
+        }
+    }
+    
+    /**
+     * @param \Php2Core\NoHTML\Xhtml $body
+     * @return \Php2Core\NoHTML\Xhtml|null
+     */
+    private static function getTrace(\Php2Core\NoHTML\Xhtml $body): ?\Php2Core\NoHTML\Xhtml
+    {
+        $trace = null;
+        $body -> get('table@#trace', function(\Php2Core\NoHTML\Xhtml $table) use(&$trace)
+        {
+            $trace = $table;
+        });
+        if($trace === null)
+        {
+            \Php2Core::trace();
+            $body -> get('table@#trace', function(\Php2Core\NoHTML\Xhtml $table) use(&$trace)
+            {
+                $trace = $table;
+            });
+        }
+        return $trace;
+    }
     
     /**
      * @return void
