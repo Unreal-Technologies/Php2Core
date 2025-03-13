@@ -80,8 +80,8 @@ values(@adminId, null);
 
 insert into `route`(`default`, `method`, `match`, `target`, `type`, `mode`, `auth`)
 values
-('false', 'get', 'index', 'index.get.raw.php', 'file', 'raw', 'false'),
+('false', 'get', 'index', 'index.php', 'file', 'raw', 'false'),
 ('false', 'get', 'admin-rdb', 'Php2Core::ResetDatabases', 'function', 'raw', 'true'),
-('false', 'get', 'login', 'login.get.full.php', 'file', 'full', 'false'),
-('false', 'post', 'login', 'login.post.raw.php', 'file', 'raw', 'false'),
-('false', 'get', 'logout', 'logout.get.raw.php', 'file', 'raw', 'true');
+('false', 'get', 'login', 'login.php', 'file', 'full', 'false'),
+('false', 'post', 'login', 'login.php', 'file', 'raw', 'false'),
+('false', 'get', 'logout', 'logout.php', 'file', 'raw', 'true');

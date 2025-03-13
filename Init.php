@@ -14,12 +14,17 @@ spl_autoload_register(function(string $className)
 require_once('Php2Core.php');
 Php2Core::initialize();
 
-$xhtml = new Php2Core\GUI\NoHTML\Xhtml('<!DOCTYPE html>');
-$head = $xhtml -> add('head');
-$xhtml -> add('body');
-
-$head -> add('script', function(\Php2Core\GUI\NoHTML\Xhtml $script)
+$mode = PHP2CORE -> get(Php2Core::Route) -> mode();
+if($mode === Php2Core\Data\Route::Routingmode_Full)
 {
-    $script -> Attributes() -> Set('type', 'text/javascript');
-    $script -> Attributes() -> Set('src', PHP2CORE -> physicalToRelativePath(__DIR__.'/GUI/NoHTML/Materialize/Form.js'));
-});
+
+    $xhtml = new Php2Core\GUI\NoHTML\Xhtml('<!DOCTYPE html>');
+    $head = $xhtml -> add('head');
+    $xhtml -> add('body');
+
+    $head -> add('script', function(\Php2Core\GUI\NoHTML\Xhtml $script)
+    {
+        $script -> Attributes() -> Set('type', 'text/javascript');
+        $script -> Attributes() -> Set('src', PHP2CORE -> physicalToRelativePath(__DIR__.'/GUI/NoHTML/Materialize/Form.js'));
+    });
+}

@@ -51,10 +51,11 @@ class Route
      */
     public function file(): ?\Php2Core\IO\File
     {
-        $targetFile = realpath(PHP2CORE -> get(\Php2Core::Root) -> path().'/Pages/'.$this -> target()['target']);
+        $composedPath = 'Pages/'.$this -> mode().'/'.$this -> match()['method'].'/';
+        $targetFile = realpath(PHP2CORE -> get(\Php2Core::Root) -> path().'/'.$composedPath.$this -> target()['target']);
         if($targetFile === false)
         {
-            $targetFile = realpath(__DIR__.'/../Pages/'.$this -> target()['target']);
+            $targetFile = realpath(__DIR__.'/../'.$composedPath.$this -> target()['target']);
             if($targetFile === false)
             {
                 return null;
@@ -121,8 +122,8 @@ class Route
         $parts = explode('::', $this -> sMatch);
         
         return [
-            'Method' => $parts[0],
-            'Slug' => $parts[1]
+            'method' => $parts[0],
+            'slug' => $parts[1]
         ];
     }
 }
