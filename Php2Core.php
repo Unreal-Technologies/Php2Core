@@ -325,7 +325,7 @@ class Php2Core
     {
         $hasBody = false;
         
-        XHTML -> get('body', function(\Php2Core\NoHTML\Xhtml $body) use(&$hasBody, $errno, $errstr, $errfile, $errline)
+        XHTML -> get('body', function(\Php2Core\GUI\NoHTML\Xhtml $body) use(&$hasBody, $errno, $errstr, $errfile, $errline)
         {
             $trace = self::getTrace($body);
             
@@ -497,7 +497,7 @@ class Php2Core
         //Get Possible routes
         $coreDbc -> query(
             'select '
-            . '`method`, `match`, `target`, `type`, `auth` '
+            . '`method`, `match`, `target`, `type`, `auth`, `mode` '
             . 'from `route` '
             . 'where '.($isServerAdmin ? '( `instance-id` = '.$instanceId.' or `instance-id` is null )' : '`instance-id` = '.$instanceId).' '
             . 'and (`match` regexp \''.implode('\' or `match` regexp \'', $possibilities).'\') '
@@ -509,7 +509,7 @@ class Php2Core
         $routeResult = $coreDbc -> execute();
         foreach($routeResult['aResults'] as $row)
         {
-            $router -> register($row['method'].'::'.$row['match'], $row['type'].'#'.$row['target']);
+            $router -> register($row['method'].'::'.$row['match'], $row['type'].'#'.$row['target'], $row['mode']);
         }
         
         //get current route (if matched)
@@ -574,32 +574,34 @@ class Php2Core
      */
     private static function initializeHandlerOverride(): void
     {
-        $isXhr = isset($_GET['mode']) && $_GET['mode'] === 'xhr';
-        
-        if((int)PHP2CORE -> get(Php2Core::Configuration) -> get('Logic/ErrorHandling') === 1 && !$isXhr)
+        if((int)PHP2CORE -> get(Php2Core::Configuration) -> get('Logic/ErrorHandling') === 1)
         {
             //register handlers
             set_error_handler('Php2Core::errorHandler');
             set_exception_handler('Php2Core::exceptionHandler');
+        }
+        
+        if(PHP2CORE -> get(Php2Core::Route) -> mode() === Php2Core\Data\Route::Routingmode_Full)
+        {
             register_shutdown_function('Php2Core::shutdown');
         }
     }
     
     /**
-     * @param \Php2Core\NoHTML\Xhtml $body
-     * @return \Php2Core\NoHTML\Xhtml|null
+     * @param \Php2Core\GUI\NoHTML\Xhtml $body
+     * @return \Php2Core\GUI\NoHTML\Xhtml|null
      */
-    private static function getTrace(\Php2Core\NoHTML\Xhtml $body): ?\Php2Core\NoHTML\Xhtml
+    private static function getTrace(\Php2Core\GUI\NoHTML\Xhtml $body): ?\Php2Core\GUI\NoHTML\Xhtml
     {
         $trace = null;
-        $body -> get('table@#trace', function(\Php2Core\NoHTML\Xhtml $table) use(&$trace)
+        $body -> get('table@#trace', function(\Php2Core\GUI\NoHTML\Xhtml $table) use(&$trace)
         {
             $trace = $table;
         });
         if($trace === null)
         {
-            \Php2Core::trace();
-            $body -> get('table@#trace', function(\Php2Core\NoHTML\Xhtml $table) use(&$trace)
+            PHP2CORE -> trace();
+            $body -> get('table@#trace', function(\Php2Core\GUI\NoHTML\Xhtml $table) use(&$trace)
             {
                 $trace = $table;
             });

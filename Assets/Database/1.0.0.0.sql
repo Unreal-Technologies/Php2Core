@@ -44,6 +44,7 @@ create table `route`
     `method` enum('get', 'post') not null default('get'),
     `match` varchar(128) not null,
     `type` enum('file', 'function') not null default('file'),
+    `mode` enum('full', 'raw') not null default('full'),
     `target` varchar(128) not null,
     `auth` enum('true', 'false') not null,
     primary key(`id`),
@@ -77,10 +78,10 @@ set @adminId = last_insert_id();
 insert into `user-instance`(`user-id`,`instance-id`)
 values(@adminId, null);
 
-insert into `route`(`default`, `method`, `match`, `target`, `type`, `auth`)
+insert into `route`(`default`, `method`, `match`, `target`, `type`, `mode`, `auth`)
 values
-('false', 'get', 'index', 'index.php', 'file', 'false'),
-('false', 'get', 'admin-rdb', 'Php2Core::ResetDatabases', 'function', 'true'),
-('false', 'get', 'login', 'login.php', 'file', 'false'),
-('false', 'post', 'login', 'login.php', 'file', 'false'),
-('false', 'get', 'logout', 'logout.php', 'file', 'true');
+('false', 'get', 'index', 'index.get.raw.php', 'file', 'raw', 'false'),
+('false', 'get', 'admin-rdb', 'Php2Core::ResetDatabases', 'function', 'raw', 'true'),
+('false', 'get', 'login', 'login.get.full.php', 'file', 'full', 'false'),
+('false', 'post', 'login', 'login.post.raw.php', 'file', 'raw', 'false'),
+('false', 'get', 'logout', 'logout.get.raw.php', 'file', 'raw', 'true');

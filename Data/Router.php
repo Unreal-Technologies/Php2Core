@@ -75,7 +75,8 @@ class Router
                         }
                     }
                     
-                    return new Route($route, $this -> aRoutes[$route], $parameters, $this -> aQuerystring);
+                    list($target, $mode) = $this -> aRoutes[$route];
+                    return new Route($route, $target, $parameters, $mode, $this -> aQuerystring);
                 }
             }
         }
@@ -85,10 +86,11 @@ class Router
     /**
      * @param string $route
      * @param string $target
+     * @param string $mode
      * @return void
      */
-    public function register(string $route, string $target): void
+    public function register(string $route, string $target, string $mode): void
     {
-        $this -> aRoutes[$route] = $target;
+        $this -> aRoutes[$route] = [$target, $mode];
     }
 }

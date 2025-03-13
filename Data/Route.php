@@ -3,10 +3,19 @@ namespace Php2Core\Data;
 
 class Route
 {
+    public const Routingmode_Raw = 'raw';
+    public const Routingmode_Full = 'full';
+    
+    
     /**
      * @var string
      */
     private string $sMatch;
+    
+    /**
+     * @var string
+     */
+    private string $sMode;
     
     /**
      * @var string
@@ -28,12 +37,21 @@ class Route
      * @param array $parameters
      * @param array $queryString
      */
-    public function __construct(string $match, string $target, array $parameters, array $queryString)
+    public function __construct(string $match, string $target, array $parameters, string $mode, array $queryString)
     {
+        $this -> sMode = $mode;
         $this -> sMatch = $match;
         $this -> sTarget = $target;
         $this -> aParameters = $parameters;
         $this -> aQueryString = $queryString;
+    }
+    
+    /**
+     * @return string
+     */
+    public function mode(): string
+    {
+        return $this -> sMode;
     }
     
     /**
