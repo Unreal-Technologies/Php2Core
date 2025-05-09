@@ -255,12 +255,12 @@ class Linq implements ILinq
     }
 
     /**
-     * @param int           $index
+     * @param mixed         $index
      * @param mixed         $buffer
      * @param \Closure|null $lambda
      * @param mixed         $item
      */
-    private function executeSwitchOrderBy(int $index, mixed &$buffer, ?\Closure $lambda, mixed $item)
+    private function executeSwitchOrderBy(mixed $index, mixed &$buffer, ?\Closure $lambda, mixed $item)
     {
         if ($lambda === null) {
             $buffer[$index] = [ $item ];
@@ -300,7 +300,7 @@ class Linq implements ILinq
                 break;
 
             case $this::SELECT:
-                $buffer[$index] = $lambda($item);
+                $buffer[$index] = $lambda($item, $index);
                 break;
 
             case $this::GROUPBY:

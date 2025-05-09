@@ -210,6 +210,18 @@ class File implements IFile
     }
 
     /**
+     * @return int
+     */
+    public function size(): int
+    {
+        if($this -> exists())
+        {
+            return filesize($this -> path());
+        }
+        return 0;
+    }
+    
+    /**
      * @return string
      */
     #[\Override]
