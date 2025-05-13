@@ -97,7 +97,7 @@ class Analyzer
         $sumByFile = array_sum($this -> basicSourceDistributionByFile);
         foreach($this -> basicSourceDistributionByFile as $k => $v)
         {
-            $percentage = ($v / $sumByFile) * 100;
+            $percentage = $sumByFile === 0 ? 0 : ($v / $sumByFile) * 100;
             $content[] = "\t".str_pad($k, $maxStringLength, ' ').': '.str_pad(number_format($percentage, 2), 6, ' ', STR_PAD_LEFT).'% ('.$v.')';
         }
         $content[] = null;
@@ -108,7 +108,7 @@ class Analyzer
         foreach($this -> basicSourceDistributionBySize as $k => $v)
         {
             $memory = \Php2Core\IO\Memory::fromInt($v);
-            $percentage = ($v / $sumBySize) * 100;
+            $percentage = $sumBySize === 0 ? 0 : ($v / $sumBySize) * 100;
             $content[] = "\t".str_pad($k, $maxStringLength, ' ').': '.str_pad(number_format($percentage, 2), 6, ' ', STR_PAD_LEFT).'% ('.$memory -> format().')';
         }
 

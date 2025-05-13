@@ -45,6 +45,63 @@ class PhpAnalyzer implements \Php2Core\Source\ISourceAnalyzer
     }
     
     /**
+     * @param array $tokens
+     * @param int $skip
+     * @return void
+     */
+    private function parse(array $tokens, int $skip = 0): void
+    {
+        $inNamespace = false;
+        $pos = $skip;
+        $count = count($tokens);
+        
+        while($pos < $count)
+        {
+            $token = $tokens[$pos];
+            
+            $tType = is_array($token) ? $token[0] : null;
+            $tName = $tType !== null ? token_name($tType) : null;
+            $tValue = is_array($token) ? $token[1] : $token;
+            $tLine = is_array($token) ? $token[2] : null;
+            
+            if($inNamespace)
+            {
+                if($tType === 265)
+                {
+                    $this -> namespace = $tValue;
+                }
+                else if($this -> namespace !== null && $tValue === ';')
+                {
+                    $inNamespace = false;
+                }
+            }
+            else
+            {
+                if($tType === 339)
+                {
+                    $inNamespace = true;
+                }
+                else if($tType === 333)
+                {
+                    $class = new Components\Class_($this -> namespace, $tokens, $pos);
+                    $this -> classes[] = $class;
+                    $pos = $class -> end();
+                }
+            }
+            
+//            echo '<xmp>';
+//            var_dumP($tType);
+//            var_dumP($tName);
+//            var_dumP($tValue);
+//            var_dumP($tLine);
+//            echo '</xmp>';
+            
+            $pos++;
+        }
+        echo '<hr />';
+    }
+    
+    /**
      * @param \Php2Core\IO\IFile $target
      */
     #[\Override]
@@ -59,78 +116,6 @@ class PhpAnalyzer implements \Php2Core\Source\ISourceAnalyzer
             throw new \Php2Core\Data\Exceptions\NotImplementedException('No Tokens');
         }
         
-        $inNamespace = false;
-        $inClass = false;
-        $classData = null;
-        
-        foreach($tokens as $idx => $token)
-        {
-            $tType = is_array($token) ? $token[0] : null;
-            $tName = $tType !== null ? token_name($tType) : null;
-            $tValue = is_array($token) ? $token[1] : $token;
-            $tLine = is_array($token) ? $token[2] : null;
-            
-            if($inNamespace)
-            {
-                if($inNamespace && $tType === 265)
-                {
-                    $this -> namespace = $tValue;
-                    $inNamespace = false;
-                }
-            }
-            else if($inClass)
-            {
-                if($classData === null && $tType === 262)
-                {
-                    $classData = new Components\Class_($tValue);
-                }
-                else if($classData !== null && $tType === 338)
-                {
-                    $implements = $this -> tokenScan($tokens, $idx + 1, 263);
-                    if($implements !== null)
-                    {
-                        $classData -> implements($implements);
-                    }
-                }
-                else if($classData !== null && $tType === 337)
-                {
-                    $extends = $this -> tokenScan($tokens, $idx + 1, 263);
-                    if($extends !== null)
-                    {
-                        $classData -> extends($extends);
-                    }
-                }
-                
-                if($tValue === '{')
-                {
-                    $inClass = false;
-                    $this -> classes[] = $classData;
-                    $classData = null;
-                }
-            }
-            else
-            {
-                if($tType === 339)
-                {
-                    $inNamespace = true;
-                }
-                else if($tType === 333)
-                {
-                    $inClass = true;
-                }
-            }
-            
-            echo '<xmp>';
-            var_dumP($tType);
-            var_dumP($tName);
-            var_dumP($tValue);
-            var_dumP($tLine);
-            echo '</xmp>';
-        }
-        
-//        echo '<xmp>';
-//        print_r($target);
-//        print_r($tokens);
-//        echo '</xmp>';
+        $this -> parse($tokens);
     }
 }
