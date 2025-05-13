@@ -1,5 +1,5 @@
 <?php
-namespace Php2Core\Source\Analyzers\Components;
+namespace Php2Core\Source\Analyzers\PhpAnalyzer;
 
 class Class_
 {
@@ -105,6 +105,7 @@ class Class_
      */
     private function getClassTags(array $tokens, int $pos): void
     {
+        //Get the Abstract tag if exists
         $start = max(0, $pos - 10);
         
         for($i=$start; $i<$pos; $i++)
@@ -120,6 +121,7 @@ class Class_
             }
         }
 
+        //Get Class Name
         $end = min(count($tokens), $pos + 10);
         $extImpPos = 0;
         
@@ -138,6 +140,7 @@ class Class_
             }
         }
         
+        //Get Class Extend & Implementations
         $inExtend = false;
         $inImplement = false;
         for($i=$extImpPos; $i<count($tokens); $i++)

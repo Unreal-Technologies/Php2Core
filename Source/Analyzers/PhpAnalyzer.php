@@ -19,31 +19,15 @@ class PhpAnalyzer implements \Php2Core\Source\ISourceAnalyzer
     private array $classes = [];
     
     /**
+     * @var Components\Interface_[]
+     */
+    private array $interfaces = [];
+    
+    /**
      * @var Components\Method[]
      */
     private array $methods = [];
-    
-    /**
-     * @param array $tokens
-     * @param int $start
-     * @param int $tokenType
-     * @param int $max
-     * @return string|null
-     */
-    private function tokenScan(array $tokens, int $start, int $tokenType, int $max=10): ?string
-    {
-        $maxSearch = min(count($tokens), $start + $max);
-        
-        for($i=$start; $i<$maxSearch; $i++)
-        {
-            if($tokens[$i][0] === $tokenType)
-            {
-                return $tokens[$i][1];
-            }
-        }
-        return null;
-    }
-    
+   
     /**
      * @param array $tokens
      * @param int $skip
@@ -83,7 +67,7 @@ class PhpAnalyzer implements \Php2Core\Source\ISourceAnalyzer
                 }
                 else if($tType === 333)
                 {
-                    $class = new Components\Class_($this -> namespace, $tokens, $pos);
+                    $class = new PhpAnalyzer\Class_($this -> namespace, $tokens, $pos);
                     $this -> classes[] = $class;
                     $pos = $class -> end();
                 }
