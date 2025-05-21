@@ -55,7 +55,7 @@ class Class_
      * @param array $tokens
      * @param int $start
      */
-    public function __construct(string $namespace, array $tokens, int $start)
+    public function __construct(?string $namespace, array $tokens, int $start)
     {
         $this -> namespace = $namespace;
         $this -> start = $start;
@@ -72,7 +72,7 @@ class Class_
             $tType = is_array($token) ? $token[0] : null;
             $tValue = is_array($token) ? $token[1] : $token;
             
-            if($depth === 0 && $tType === 333)
+            if($depth === 0 && $tType === Tokens::T_CLASS)
             {
                 $isClass = true;
                 $this -> getClassTags($tokens, $position);
@@ -119,10 +119,7 @@ class Class_
         {
             $token = $tokens[$pos];
             
-            $tType = is_array($token) ? $token[0] : null;
-            $tName = $tType !== null ? token_name($tType) : null;
             $tValue = is_array($token) ? $token[1] : $token;
-            $tLine = is_array($token) ? $token[2] : null;
             
             if($tValue === '{')
             {
@@ -165,7 +162,7 @@ class Class_
             
             $tType = is_array($token) ? $token[0] : null;
 
-            if($tType === 322)
+            if($tType === Tokens::T_ABSTRACT)
             {
                 $this -> isAbstract = true;
                 break;
@@ -183,7 +180,7 @@ class Class_
             $tType = is_array($token) ? $token[0] : null;
             $tValue = is_array($token) ? $token[1] : $token;
             
-            if($tType === 262)
+            if($tType === Tokens::T_STRING)
             {
                 $this -> name = $tValue;
                 $extImpPos = $i;
@@ -197,7 +194,7 @@ class Class_
         for($i=$extImpPos; $i<count($tokens); $i++)
         {
             $token = $tokens[$i];
-            
+
             $tType = is_array($token) ? $token[0] : null;
             $tValue = is_array($token) ? $token[1] : $token;
             
@@ -206,13 +203,13 @@ class Class_
                 break;
             }
             
-            if($tType === 337)
+            if($tType === Tokens::T_EXTENDS)
             {
                 $inExtend = true;
                 $inImplement = false;
             }
             
-            if($tType === 338)
+            if($tType === Tokens::T_IMPLEMENTS)
             {
                 $inImplement = true;
                 $inExtend = false;
@@ -221,11 +218,11 @@ class Class_
             if($inExtend || $inImplement)
             {
                 $target = null;
-                if($tType === 263)
+                if($tType === Tokens::T_NAME_FULLY_QUALIFIED)
                 {
                     $target = $tValue;
                 }
-                else if($tType === 262)
+                else if($tType === Tokens::T_STRING)
                 {
                     $target = '\\'.$this -> namespace.'\\'.$tValue;
                 }

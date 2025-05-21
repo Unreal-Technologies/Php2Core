@@ -55,13 +55,13 @@ class PhpAnalyzer implements \Php2Core\Source\ISourceAnalyzer
             $token = $tokens[$pos];
             
             $tType = is_array($token) ? $token[0] : null;
-            $tName = $tType !== null ? token_name($tType) : null;
+            $tName = $tType !== null ? PhpAnalyzer\Tokens::getToken($tType) : null;
             $tValue = is_array($token) ? $token[1] : $token;
             $tLine = is_array($token) ? $token[2] : null;
             
             if($inNamespace)
             {
-                if($tType === 265)
+                if($tType === PhpAnalyzer\Tokens::T_NAME_QUALIFIED)
                 {
                     $this -> namespace = $tValue;
                 }
@@ -72,11 +72,11 @@ class PhpAnalyzer implements \Php2Core\Source\ISourceAnalyzer
             }
             else
             {
-                if($tType === 339)
+                if($tType === PhpAnalyzer\Tokens::T_NAMESPACE)
                 {
                     $inNamespace = true;
                 }
-                else if($tType === 333)
+                else if($tType === PhpAnalyzer\Tokens::T_CLASS)
                 {
                     $class = new PhpAnalyzer\Class_($this -> namespace, $tokens, $pos);
                     $this -> classes[] = $class;

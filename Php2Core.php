@@ -498,7 +498,7 @@ class Php2Core
         $lineTokenParameters = [];
         foreach($tokens as $token)
         {
-            if(!$match && $token[0] === 262 && strtolower($token[1]) === 'dump' && $token[2] === $line)
+            if(!$match && $token[0] === \Php2Core\Source\Analyzers\PhpAnalyzer\Tokens::T_STRING && strtolower($token[1]) === 'dump' && $token[2] === $line)
             {
                 $match = true;
             }
@@ -541,7 +541,7 @@ class Php2Core
             $type = is_array($token) && isset($token[0]) ? $token[0] : null;
             $inSubcomponent = $ltdepth > 0;
             
-            if($type === 392 && !$inSubcomponent)
+            if($type === \Php2Core\Source\Analyzers\PhpAnalyzer\Tokens::T_WHITESPACE && !$inSubcomponent)
             {
                 continue;
             }
