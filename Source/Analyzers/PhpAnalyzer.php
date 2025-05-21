@@ -89,12 +89,7 @@ class PhpAnalyzer implements \Php2Core\Source\ISourceAnalyzer
                 }
             }
             
-//            echo '<xmp>';
-//            var_dumP($tType);
-//            var_dumP($tName);
-//            var_dumP($tValue);
-//            var_dumP($tLine);
-//            echo '</xmp>';
+//            \Php2Core::dUmp($tType, $tName, $tValue, $tLine);
             
             $pos++;
         }

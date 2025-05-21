@@ -1,8 +1,6 @@
 <?php
 class Php2Core
 {
-    //<editor-fold defaultstate="collapsed" desc="Constants">
-    
     public const Root           = 0x01000000;
     public const Temp           = 0x01000001;
     public const Cache          = 0x01000002;
@@ -16,28 +14,18 @@ class Php2Core
     public const Route          = 0x06000000;
     public const DefaultRoute   = 0x06000001;
 
-    //</editor-fold>
-    
-    //<editor-fold defaultstate="collapsed" desc="Members">
+    public static $dumpAsHtml = false;
+    public static $dumpTitle = null;
     
     /**
      * @var array
      */
     private array $data = [];
     
-    //</editor-fold>
-    
-    //<editor-fold defaultstate="collapsed" desc="Constructor">
-    
     private function __construct(\Closure $cb)
     {
         $cb($this);
     }
-    
-    //</editor-fold>
-    
-    //<editor-fold defaultstate="collapsed" desc="Methods">
-    //<editor-fold defaultstate="collapsed" desc="Public">
     
     /**
      * @param int $property
@@ -244,29 +232,24 @@ class Php2Core
             echo '</xmp>';
         }
     }
-    
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="Private">
-    
-    //</editor-fold>
-    //</editor-fold>
-    
-    //<editor-fold defaultstate="collapsed" desc="Static Methods">
-    //<editor-fold defaultstate="collapsed" desc="Public">
 
     /**
      * @param mixed $arguments
      * @return void
      */
-    public static function dump(mixed ...$arguments): void
+    public static function dump(mixed ...$arguments): ?string
     {
         $self = debug_backtrace()[0];
         $file = \Php2Core\IO\File::fromString($self['file']);
         
         $tokens = self::dumpGetTokens($file, $self['line']);
         
+        if(self::$dumpAsHtml)
+        {
+            ob_start();
+        }
         echo '<div class="dump">';
-        echo '<h2>'.__METHOD__.'</h2>';
+        echo '<h2>'.(self::$dumpTitle === null ? __METHOD__ : self::$dumpTitle).'</h2>';
         echo '<span>'.$self['file'].':'.$self['line'].'</span><br />';
         echo '<div>';
         foreach($arguments as $idx => $argument)
@@ -288,6 +271,11 @@ class Php2Core
         }
         echo '</div>';
         echo '</div>';
+        if(self::$dumpAsHtml)
+        {
+            return ob_get_clean();
+        }
+        return null;
     }
     
     /**
@@ -395,15 +383,19 @@ class Php2Core
      */
     public static function exceptionHandler(\Throwable $ex): void
     {
+        self::$dumpTitle = __METHOD__;
         $hasBody = false;
         
         if(defined('XHTML'))
         {
             XHTML -> get('body', function(\Php2Core\GUI\NoHTML\Xhtml $body) use(&$hasBody, $ex)
             {
+                self::$dumpAsHtml = true;
+                $res = self::dump($ex);
+                self::$dumpAsHtml = false;
+                
                 $body -> clear();
-                $body -> add('h2') -> text('Php2Core::ExceptionHandler');
-                $body -> add('xmp') -> text(print_r($ex, true));
+                $body -> text($res);
 
                 $hasBody = true; 
             });
@@ -411,11 +403,9 @@ class Php2Core
         
         if(!$hasBody)
         {
-            echo '<h2>Php2Core::ExceptionHandler</h2>';
-            echo '<xmp>';
-            print_r($ex);
-            echo '</xmp>';
+            self::dump($ex);
         }
+        self::$dumpTitle = null;
         exit;
     }
     
@@ -493,9 +483,6 @@ class Php2Core
         }
     }
     
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="Private">
-    
     /**
      * @param \Php2Core\IO\File $file
      * @param int $line
@@ -511,9 +498,7 @@ class Php2Core
         $lineTokenParameters = [];
         foreach($tokens as $token)
         {
-            
-            
-            if(!$match && $token[0] === 262 && $token[1] === 'dump' && $token[2] === $line)
+            if(!$match && $token[0] === 262 && strtolower($token[1]) === 'dump' && $token[2] === $line)
             {
                 $match = true;
             }
@@ -820,7 +805,4 @@ class Php2Core
             throw $pex;
         }
     }
-    
-    //</editor-fold>
-    //</editor-fold>
 }
