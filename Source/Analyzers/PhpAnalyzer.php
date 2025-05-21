@@ -27,6 +27,17 @@ class PhpAnalyzer implements \Php2Core\Source\ISourceAnalyzer
      * @var Components\Method[]
      */
     private array $methods = [];
+    
+    /**
+     * @var PhpAnalyzer\Constant[]
+     */
+    private array $constants = [];
+    
+    
+    /**
+     * @var PhpAnalyzer\Enum[]
+     */
+    private array $enums = [];
    
     /**
      * @param array $tokens
@@ -70,6 +81,11 @@ class PhpAnalyzer implements \Php2Core\Source\ISourceAnalyzer
                     $class = new PhpAnalyzer\Class_($this -> namespace, $tokens, $pos);
                     $this -> classes[] = $class;
                     $pos = $class -> end();
+                    
+                    if($pos < 0)
+                    {
+                        break;
+                    }
                 }
             }
             
@@ -82,7 +98,6 @@ class PhpAnalyzer implements \Php2Core\Source\ISourceAnalyzer
             
             $pos++;
         }
-        echo '<hr />';
     }
     
     /**

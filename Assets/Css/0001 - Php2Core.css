@@ -78,3 +78,37 @@
     vertical-align: middle;
     cursor: pointer;
 }
+
+.dump
+{
+    border-width: 1px;
+    border-style: solid;
+    width: 95%;
+    margin: auto;
+    background-color: #000000;
+    font-family: monospace;
+    border-style: outset;
+    border-color: #c0c0c0;
+    margin-bottom: 5px;
+    overflow: scroll;
+}
+
+.dump h2
+{
+    text-align: center;
+}
+
+.dump span
+{
+    color: #aaaa00;
+}
+
+.dump div span span:nth-child(odd)
+{
+    color: #aa0000;
+}
+
+.dump div span span:nth-child(even)
+{
+    color: #00aa00;
+}

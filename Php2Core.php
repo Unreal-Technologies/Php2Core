@@ -253,6 +253,42 @@ class Php2Core
     
     //<editor-fold defaultstate="collapsed" desc="Static Methods">
     //<editor-fold defaultstate="collapsed" desc="Public">
+
+    /**
+     * @param mixed $arguments
+     * @return void
+     */
+    public static function dump(mixed ...$arguments): void
+    {
+        $self = debug_backtrace()[0];
+        $file = \Php2Core\IO\File::fromString($self['file']);
+        
+        $tokens = self::dumpGetTokens($file, $self['line']);
+        
+        echo '<div class="dump">';
+        echo '<h2>'.__METHOD__.'</h2>';
+        echo '<span>'.$self['file'].':'.$self['line'].'</span><br />';
+        echo '<div>';
+        foreach($arguments as $idx => $argument)
+        {
+            echo '<span>';
+            $doPrint = is_array($argument) || is_object($argument);
+            echo '<span>'.$tokens[$idx].'</span> = <span>';
+            //echo '<span>Arg[\''.$idx.'\']</span> = <span>';
+            if($doPrint)
+            {
+                echo '<xmp>'.print_r($argument, true).'</xmp>';
+            }
+            else
+            {
+                var_dumP($argument);
+            }
+            echo '</span><br />';
+            echo '</span>';
+        }
+        echo '</div>';
+        echo '</div>';
+    }
     
     /**
      * @return void
@@ -283,7 +319,6 @@ class Php2Core
             $core -> set($core::Cache, $cache);
             $core -> set($core::Start, microtime(true));
             $core -> set($core::Version, new \Php2Core\Data\Version('Php2Core', 1,0,0,2, 'https://github.com/Unreal-Technologies/Php2Core'));
-            
             
             $appConfigFile = \Php2Core\IO\File::fromDirectory($cache, 'Config.app.ini');
             if(!$appConfigFile -> exists())
@@ -460,6 +495,100 @@ class Php2Core
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Private">
+    
+    /**
+     * @param \Php2Core\IO\File $file
+     * @param int $line
+     * @return array
+     */
+    private static function dumpGetTokens(\Php2Core\IO\File $file, int $line): array
+    {
+        $tokens = token_get_all($file -> read());
+        
+        $match = false;
+        $open = false;
+        $depth = 0;
+        $lineTokenParameters = [];
+        foreach($tokens as $token)
+        {
+            
+            
+            if(!$match && $token[0] === 262 && $token[1] === 'dump' && $token[2] === $line)
+            {
+                $match = true;
+            }
+            
+            if(!$open && $match && $token === '(')
+            {
+                $open = true;
+            }
+            else if($open)
+            {
+                if($token === ')' && $depth === 0)
+                {
+                    $open = false;
+                    $match = false;
+                    break;
+                }
+                else if($token === '(')
+                {
+                    $depth++;
+                    $lineTokenParameters[] = '(';
+                }
+                else if($token === ')')
+                {
+                    $depth--;
+                    $lineTokenParameters[] = ')';
+                }
+                else
+                {
+                    $lineTokenParameters[] = $token;
+                }
+            }
+        }
+        
+        $components = [];
+        $current = 0;
+
+        $ltdepth = 0;
+        foreach($lineTokenParameters as $token)
+        {
+            $type = is_array($token) && isset($token[0]) ? $token[0] : null;
+            $inSubcomponent = $ltdepth > 0;
+            
+            if($type === 392 && !$inSubcomponent)
+            {
+                continue;
+            }
+            else if($token === ',' && !$inSubcomponent)
+            {
+                $current++;
+                continue;
+            }
+            
+            if($token === '(')
+            {
+                $ltdepth++;
+                $components[$current] .= '(';
+            }
+            else if($token === ')')
+            {
+                $ltdepth--;
+                $components[$current] .= ')';
+            }
+            else
+            {
+                if(!isset($components[$current]))
+                {
+                    $components[$current] = '';
+                }
+                $components[$current] .= $type === null ? $token : $token[1];
+            }
+            
+        }
+        
+        return $components;
+    }
     
     /**
      * @return void

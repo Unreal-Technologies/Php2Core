@@ -41,6 +41,16 @@ class Class_
     private array $methods = [];
     
     /**
+     * @var Member[]
+     */
+    private array $members = [];
+    
+    /**
+     * @var Constant[]
+     */
+    private array $constants = [];
+    
+    /**
      * @param string $namespace
      * @param array $tokens
      * @param int $start
@@ -51,20 +61,21 @@ class Class_
         $this -> start = $start;
         $isClass = false;
         
+        $position = $this -> start;
+        $count = count($tokens);
         $depth = 0;
-        for($i=$this -> start; $i<count($tokens); $i++)
+        
+        while($position < $count)
         {
-            $token = $tokens[$i];
+            $token = $tokens[$position];
             
             $tType = is_array($token) ? $token[0] : null;
-            $tName = $tType !== null ? token_name($tType) : null;
             $tValue = is_array($token) ? $token[1] : $token;
-            $tLine = is_array($token) ? $token[2] : null;
             
             if($depth === 0 && $tType === 333)
             {
                 $isClass = true;
-                $this -> getClassTags($tokens, $i);
+                $this -> getClassTags($tokens, $position);
             }
             
             if($tValue === '{')
@@ -74,15 +85,8 @@ class Class_
             
             if($depth > 0 && $isClass) 
             {
-                //Parse Current Class Tokens
-                
-//                echo '<xmp>';
-//                var_dump($i);
-//                var_dumP($tType);
-//                var_dumP($tName);
-//                var_dumP($tValue);
-//                var_dumP($tLine);
-//                echo '</xmp>';
+                $skip = $this -> analyzeClassContent($tokens, $position);
+                $position += $skip;
             }
             
             if($tValue === '}')
@@ -91,15 +95,62 @@ class Class_
                 
                 if($isClass && $depth === 0)
                 {
-                    $this -> end = $i;
+                    $this -> end = $position;
                     break;
                 }
             }
+            
+            $position++;
         }
     }
     
     /**
      * @param array $tokens
+     * @param int $position
+     * @return int
+     */
+    private function analyzeClassContent(array $tokens, int $position): int
+    {
+        $depth = 0;
+        $pos = $position;
+        $count = count($tokens);
+        
+        while($pos < $count)
+        {
+            $token = $tokens[$pos];
+            
+            $tType = is_array($token) ? $token[0] : null;
+            $tName = $tType !== null ? token_name($tType) : null;
+            $tValue = is_array($token) ? $token[1] : $token;
+            $tLine = is_array($token) ? $token[2] : null;
+            
+            if($tValue === '{')
+            {
+                $depth++;
+            }
+            
+            if($tValue === '}')
+            {
+                $depth--;
+                
+                if($depth === 0)
+                {
+                    break;
+                }
+            }
+            
+            if($depth < 0)
+            {
+                return 0;
+            }
+            $pos++;
+        }
+
+        return $pos - $position;
+    }
+
+    /**
+     * @param array $tokensD
      * @param int $pos
      * @return void
      */
